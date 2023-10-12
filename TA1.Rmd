@@ -1,0 +1,188 @@
+---
+title: "TA1"
+author: "Quentin"
+date: "2023-10-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+# Load necessary libraries
+library(QRM)
+library(tseries)
+library(nortest)
+
+
+#QUESTION A)
+par(mfrow = c(2,2))
+
+plot(sp500)
+plot(cac40)
+plot(nasdaq)
+plot(nikkei)
+
+#We can see from the plots that none of the indices seem to be stationary, as they are changing widely.
+
+#QUESTION B)
+
+#Log Returns: Log returns express price changes as percentage changes, which can be interpreted in terms of relative price movements.
+#Negative Log Returns: Negative log returns express the magnitude of price changes without specifying whether they are increases or decreases.
+
+# Define a function to calculate negative log returns
+calculate_log_returns <- function(price_series) {
+  log_returns <- -diff(log(price_series))
+  return(log_returns)
+}
+
+# Calculate negative log returns for each index
+log_returns_sp500 <- calculate_log_returns(sp500)
+log_returns_cac40 <- calculate_log_returns(cac40)
+log_returns_nasdaq <- calculate_log_returns(nasdaq)
+log_returns_nikkei <- calculate_log_returns(nikkei)
+
+# Plot the log returns for each index
+
+# Create a common scale plot for negative log returns of all indices
+par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
+
+# Plot for SP500
+plot(log_returns_sp500, type = "l", col = "blue", xlab = "Time", ylab = "Negative Log Returns", main = "SP500", ylim=c(0.1,-0.1))
+abline(h = 0, col = "red")  # Add a reference line at zero
+
+# Plot for CAC40
+plot(log_returns_cac40, type = "l", col = "green", xlab = "Time", ylab = "Negative Log Returns", main = "CAC40", ylim=c(0.1,-0.1))
+abline(h = 0, col = "red")
+
+# Plot for Nasdaq
+plot(log_returns_nasdaq, type = "l", col = "purple", xlab = "Time", ylab = "Negative Log Returns", main = "Nasdaq", ylim=c(0.1,-0.1))
+abline(h = 0, col = "red")
+
+# Plot for NIKKEI
+plot(log_returns_nikkei, type = "l", col = "orange", xlab = "Time", ylab = "Negative Log Returns", main = "NIKKEI", ylim=c(0.1,-0.1))
+abline(h = 0, col = "red")
+
+# Reset the plot layout
+par(mfrow = c(1, 1))
+
+
+#QUESTION C)
+
+# Set the number of histogram bins
+num_bins <- 30
+
+# Create a common scale for the histograms
+par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
+
+# Plot histograms and overlay Normal distribution curves
+hist(log_returns_sp500, breaks = num_bins, main = "Histogram - SP500 Log Returns", xlab = "Log Returns", probability = TRUE)
+curve(dnorm(x, mean = mean(log_returns_sp500), sd = sd(log_returns_sp500)), col = "blue", lwd = 2, add = TRUE)
+
+hist(log_returns_cac40, breaks = num_bins, main = "Histogram - CAC40 Log Returns", xlab = "Log Returns", probability = TRUE)
+curve(dnorm(x, mean = mean(log_returns_cac40), sd = sd(log_returns_cac40)), col = "green", lwd = 2, add = TRUE)
+
+hist(log_returns_nasdaq, breaks = num_bins, main = "Histogram - Nasdaq Log Returns", xlab = "Log Returns", probability = TRUE)
+curve(dnorm(x, mean = mean(log_returns_nasdaq), sd = sd(log_returns_nasdaq)), col = "purple", lwd = 2, add = TRUE)
+
+hist(log_returns_nikkei, breaks = num_bins, main = "Histogram - NIKKEI Log Returns", xlab = "Log Returns", probability = TRUE)
+curve(dnorm(x, mean = mean(log_returns_nikkei), sd = sd(log_returns_nikkei)), col = "orange", lwd = 2, add = TRUE)
+
+# Reset the plot layout
+par(mfrow = c(1, 1))
+
+#interpretation:
+#CHECK OF Skewness: If the histograms are skewed, it suggests that the data may not be symmetric, which is common in financial data due to market dynamics.
+#Kurtosis: If the histograms have fatter tails than the Normal distribution, it indicates that extreme events are more frequent than a Normal distribution would predict. This is often seen in financial data due to market volatility.
+#Divergence: The extent to which the histograms diverge from the Normal curve can provide insights into the distributional characteristics specific to each stock index.
+
+#QUESTION D)
+
+# Create QQ-plots for log returns
+
+par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
+
+qqnorm(log_returns_sp500, main = "QQ-Plot - SP500 Log Returns")
+qqline(log_returns_sp500)
+qqnorm(log_returns_cac40, main = "QQ-Plot - CAC40 Log Returns")
+qqline(log_returns_cac40)
+qqnorm(log_returns_nasdaq, main = "QQ-Plot - Nasdaq Log Returns")
+qqline(log_returns_nasdaq)
+qqnorm(log_returns_nikkei, main = "QQ-Plot - NIKKEI Log Returns")
+qqline(log_returns_nikkei)
+
+# Check if points on the QQ-plots deviate significantly from the line : OUI POUR TOUS
+
+#QUESTION E)
+
+library(nortest)
+
+# Perform Anderson-Darling test for normality
+ad_test_sp500 <- ad.test(log_returns_sp500)
+ad_test_cac40 <- ad.test(log_returns_cac40)
+ad_test_nasdaq <- ad.test(log_returns_nasdaq)
+ad_test_nikkei <- ad.test(log_returns_nikkei)
+
+# Print the results
+print(ad_test_sp500)
+print(ad_test_cac40)
+print(ad_test_nasdaq)
+print(ad_test_nikkei)
+
+# Check the p-values. If p-value < 0.05, you can reject the normality hypothesis.
+#Interpretation: In each case, the p-value is extremely close to zero (p-value < 2.2e-16), which indicates strong evidence against the null hypothesis that the data follows a normal distribution.The test statistics (A) are relatively large, further indicating that the data significantly deviates from a normal distribution.Based on the p-values and test statistics, you can conclude that the negative log returns for each of the stock indices (SP500, CAC40, Nasdaq, NIKKEI) do not follow a normal distribution. Instead, they exhibit departures from normality.This departure from normality is common in financial data, where factors like volatility, non-linearity, and extreme events can lead to non-Normal distributions.
+
+# QUESTION F)
+library(MASS)
+
+# Remove missing values from log return datasets
+log_returns_sp500 <- log_returns_sp500[!is.na(log_returns_sp500)]
+log_returns_cac40 <- log_returns_cac40[!is.na(log_returns_cac40)]
+log_returns_nasdaq <- log_returns_nasdaq[!is.na(log_returns_nasdaq)]
+log_returns_nikkei <- log_returns_nikkei[!is.na(log_returns_nikkei)]
+
+# Fit distributions : normal
+fit_sp500 <- fitdistr(log_returns_sp500, "normal")
+fit_cac40 <- fitdistr(log_returns_cac40, "normal")
+fit_nasdaq <- fitdistr(log_returns_nasdaq, "normal")
+fit_nikkei <- fitdistr(log_returns_nikkei, "normal")
+
+# Fit a t-distribution to log returns
+fit_sp500_t <- fitdistr(log_returns_sp500, "t")
+fit_cac40_t <- fitdistr(log_returns_cac40, "t")
+fit_nasdaq_t <- fitdistr(log_returns_nasdaq, "t")
+fit_nikkei_t <- fitdistr(log_returns_nikkei, "t")
+
+# Calculate AIC for each distribution
+aic_sp500 <- AIC(fit_sp500)
+aic_cac40 <- AIC(fit_cac40)
+aic_nasdaq <- AIC(fit_nasdaq)
+aic_nikkei <- AIC(fit_nikkei)
+
+# Calculate AIC for each distribution
+aic_sp500_t <- AIC(fit_sp500_t)
+aic_cac40_t <- AIC(fit_cac40_t)
+aic_nasdaq_t <- AIC(fit_nasdaq_t)
+aic_nikkei_t <- AIC(fit_nikkei_t)
+
+# Print AIC values and compare the distributions
+print(aic_sp500)
+print(aic_cac40)
+print(aic_nasdaq)
+print(aic_nikkei)
+
+# Print AIC values and compare the distributions
+print(aic_sp500_t)
+print(aic_cac40_t)
+print(aic_nasdaq_t)
+print(aic_nikkei_t)
+
+#for each indices, the normal distribution has a lower AIC meaning that its a better fit.
+
+```
+
+
+
+
