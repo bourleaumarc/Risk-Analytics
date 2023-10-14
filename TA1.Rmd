@@ -15,6 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(QRM)
 library(tseries)
 library(nortest)
+library(forecast)
 
 #PART 1
 
@@ -202,6 +203,21 @@ Box.test(sp500)
 Box.test(cac40)
 Box.test(nasdaq)
 Box.test(nikkei)
+
+
+#QUESTION C)
+
+acf(log_returns_sp500)
+acf(log_returns_cac40)
+acf(log_returns_nasdaq)
+acf(log_returns_nikkei)
+
+pacf(sp500)
+pacf(cac40)
+pacf(nasdaq)
+pacf(nikkei)
+
+auto.arima(log_returns_sp500)
 
 ```
 
