@@ -86,6 +86,7 @@ All indices have been set to the same scale, which allows us to see that Nasdaq 
 # Set the number of histogram bins
 num_bins <- 30
 
+
 # Create a common scale for the histograms
 par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
 
