@@ -364,18 +364,35 @@ par(mar = c(5, 4, 3, 2))
 pacf(log_returns_nikkei)
 
 ```
+(c) Propose ARIMA for the negative log returns. 
+```{r}
+## ADF FOR SP500 
+adf.test(log_returns_sp500)
+
+## ADF FOR CAC40
+adf.test(log_returns_cac40)
+
+## ADF FOR NASDAQ
+adf.test(log_returns_nasdaq)
+
+## ADF FOR NIKKEI
+adf.test(log_returns_nikkei)
+
+
+
+```
+ d = 0, no need to differentiate as p-value < 0.05 makes sense (to comment)
 
 ```{r}
+## ARIMA SP500
+Arima(log_returns_sp500, order = c(8,0,7))
+## ARIMA CAC40
+Arima(log_returns_cac40, order = c(5,0,5))
+## ARIMA NASDAQ
+Arima(log_returns_nasdaq, order = c(7,0,7))
+## ARIMA NIKKEI
+Arima(log_returns_nikkei, order = c(1,0,1))
 
-
-# Perform differencing to make the data stationary
-sp500D <- diff(sp500, lag = 1)  # For d = 1
-
-head(sp500D)
-head(sp500)
-
-# Perform the ADF test
-adf.test(sp500D, alternative = "stationary")
 
 
 ```
@@ -383,13 +400,27 @@ adf.test(sp500D, alternative = "stationary")
 
 ```{r}
 
-auto.arima(log_returns_sp500)
-auto.arima(log_returns_cac40)
-auto.arima(log_returns_nikkei)
-auto.arima(log_returns_nasdaq)
+model_sp500 <- auto.arima(log_returns_sp500)# better the auto with parameters: ARIMA(2,0,1) non-zero mean 
+print(model_sp500)
+auto.arima(log_returns_cac40) # better the auto with parameters: ARIMA(0,0,0) zero-mean 
+auto.arima(log_returns_nasdaq)# better the auto with parameters: ARIMA(2,0,2) with zero mean 
+auto.arima(log_returns_nikkei)# better the auto with parameters: ARIMA(2,0,1) with zero mean 
+
+
 
 ```
 
+Assess the residuals:
+```{r}
+# Example for assessing residuals of the S&P 500 ARIMA model
+residuals_sp500 <- residuals(model_sp500)
+residuals_cac40 <- residuals(model_cac40)
+residuals_nikkei <- residuals(model_nikkei)
+
+# Ljung-Box test for autocorrelation in residuals
+Box.test(residuals_sp500, lag = 30 , type = "Ljung") # almost significant means may indicate that the ARIMA model can be improved ()
+# 
+```
 
 
 
