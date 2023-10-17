@@ -322,23 +322,71 @@ Box.test(log_returns_nikkei, type = "Ljung-Box")
 
 ```
 
-
+Using the negative log-returns, we have high p-values for the box-Ljung test, meaning that the model is capturing the temporal dependencies in the data. However, it's not the case for the Nikkei indice that has a p-value a bit low. It means that there might be autocorrelation in the residuals.
 
 
 ```{r}
 #QUESTION C)
 
-acf(log_returns_sp500)
-acf(log_returns_cac40)
-acf(log_returns_nasdaq)
-acf(log_returns_nikkei)
+par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
+par(oma = c(0, 0, 1, 0))
 
-pacf(sp500)
-pacf(cac40)
-pacf(nasdaq)
-pacf(nikkei)
+par(mar = c(5, 4, 3, 2))
+acf(log_returns_sp500)
+
+par(mar = c(5, 4, 3, 2))
+acf(log_returns_cac40)
+
+par(mar = c(5, 4, 3, 2))
+acf(log_returns_nasdaq)
+
+par(mar = c(5, 4, 3, 2))
+acf(log_returns_nikkei)
+```
+
+
+```{r}
+
+par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
+par(oma = c(0, 0, 1, 0))
+
+
+par(mar = c(5, 4, 3, 2))
+pacf(log_returns_sp500)
+
+par(mar = c(5, 4, 3, 2))
+pacf(log_returns_cac40)
+
+par(mar = c(5, 4, 3, 2))
+pacf(log_returns_nasdaq)
+
+par(mar = c(5, 4, 3, 2))
+pacf(log_returns_nikkei)
+
+```
+
+```{r}
+
+
+# Perform differencing to make the data stationary
+sp500D <- diff(sp500, lag = 1)  # For d = 1
+
+head(sp500D)
+head(sp500)
+
+# Perform the ADF test
+adf.test(sp500D, alternative = "stationary")
+
+
+```
+
+
+```{r}
 
 auto.arima(log_returns_sp500)
+auto.arima(log_returns_cac40)
+auto.arima(log_returns_nikkei)
+auto.arima(log_returns_nasdaq)
 
 ```
 
