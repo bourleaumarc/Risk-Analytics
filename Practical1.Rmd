@@ -347,7 +347,7 @@ Box.test(nasdaq, type = "Ljung-Box")
 Box.test(nikkei, type = "Ljung-Box")
 
 ```
-The null hypothesis of the Ljung-Box test is that the residuals are independent (i.e., no autocorrelation). From these results, we can see that all 4 indices show a very small p-value (<2.2e-16).
+The null hypothesis of the Ljung-Box test is that the residuals are independent (i.e., no autocorrelation). From these results, we can see that all 4 indices show a very small p-value (<2.2e-16) and that they are not independent. 
 
 We therefore reject the null hypothesis.
 
@@ -361,31 +361,14 @@ Box.test(log_returns_nikkei, type = "Ljung-Box")
 
 ```
 
-Using the negative log-returns, we have high p-values for the box-Ljung test, meaning that the model is capturing the temporal dependencies in the data. However, it's not the case for the Nikkei indice that has a p-value a bit low. It means that there might be autocorrelation in the residuals.
+Using the negative log-returns, we have high p-values, meaning that we can't reject the hypothesis that the data points are auto-correlated (i.e independent).
 
+However, it's almost not the case for the Nikkei index, as it's p-value is almost 0.05. Therefore, it's the one that appears to have the less autocorrelation. 
 
+(c) Propose ARIMA models for each of the negative log returns series, based on visualisation tools (e.g. ACF and PACF). Select an ARIMA model using auto.arima() (forecast package) to each of the negative log returns series. Comment on the difference. Assess the residuals of the resulting models.
+
+In order to select the order of the 
 ```{r}
-#QUESTION C)
-
-par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
-par(oma = c(0, 0, 1, 0))
-
-par(mar = c(5, 4, 3, 2))
-acf(log_returns_sp500)
-
-par(mar = c(5, 4, 3, 2))
-acf(log_returns_cac40)
-
-par(mar = c(5, 4, 3, 2))
-acf(log_returns_nasdaq)
-
-par(mar = c(5, 4, 3, 2))
-acf(log_returns_nikkei)
-```
-
-
-```{r}
-
 par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
 par(oma = c(0, 0, 1, 0))
 

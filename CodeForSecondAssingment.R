@@ -61,7 +61,7 @@ mod3$results$par #gives parameters of the GEV
 # suggest heavy-tailed model here, but only point estimates.
 # What about building confidence intervals? 
 ci.fevd(mod3, alpha=0.05, type="parameter")
-# the CI includes 0, so not sure we're that heavy-tailed
+# the CI includes 0 for the shape parameter, so not sure we're that heavy-tailed
 gev.rl <- return.level(x = mod3, return.period = c(10,100,1000,10000),
                        do.ci = TRUE, alpha = 0.05)
 gev.rl
