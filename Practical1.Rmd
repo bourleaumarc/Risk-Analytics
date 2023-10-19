@@ -173,7 +173,7 @@ qqline(log_returns_nasdaq)
 qqnorm(log_returns_nikkei, main = "QQ-Plot - NIKKEI Log Returns")
 qqline(log_returns_nikkei)
 ```
-As we can see from the QQ-plots, the are all heavily deviating from the line, which indicates that the indices cannot be estimated by a normal distribution, thus underestimating the extreme values. In the Nasdaq plot, for example, we can see the most extreme value from negative log returns on the left side. One thing to note is that these plot don't have the same scale. This hsows once again the high variation from Nasdaq, but from all other indices as well.
+As we can see from the QQ-plots, data points are all heavily deviating from the line, which indicates that the indices cannot be estimated by a normal distribution, thus underestimating the extreme values. In the Nasdaq plot, for example, we can see the most extreme value from negative log returns on the left side. One thing to note is that these plot don't have the same scale. This hsows once again the high variation from Nasdaq, but from all other indices as well.
 
 
 
