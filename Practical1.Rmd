@@ -9,40 +9,63 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
+List of all the packages used 
 ```{r}
-
-# Load necessary libraries
 library(QRM)
 library(tseries)
 library(nortest)
 library(forecast)
+library(plotly)
+```
 
-#PART 1
 
+# Part 1: financial returns and normality 
+## (a) Read in the data and assess the stationarity of the raw stock indices.  
+We are going to use two methods. The first one, is to visualize the stock indices over time to get a sense of whether they appear stationary or not; using `plot()`.
+```{r}
+# Create interactive plots for each index
+plot_sp500 <- plot_ly(x = sp500.df$DATE, y = sp500.df$SP500, type = "scatter", mode = "lines", name = "SP500") %>%
+  layout(title = "SP500")
 
-#QUESTION A)
-par(mfrow = c(2,2))
+plot_cac40 <- plot_ly(x = cac40.df$DATE, y = cac40.df$CAC40, type = "scatter", mode = "lines", name = "CAC40") %>%
+  layout(title = "CAC40")
 
-plot(sp500)
-plot(cac40)
-plot(nasdaq)
-plot(nikkei)
+plot_nasdaq <- plot_ly(x = nasdaq.df$DATE, y = nasdaq.df$NASDAQ, type = "scatter", mode = "lines", name = "Nasdaq") %>%
+  layout(title = "Nasdaq")
 
+plot_nikkei <- plot_ly(x = nikkei.df$DATE, y = nikkei.df$NIKKEI, type = "scatter", mode = "lines", name = "NIKKEI") %>%
+  layout(title = "NIKKEI")
+
+combined_plot <- subplot(plot_sp500, plot_cac40, plot_nasdaq, plot_nikkei, nrows = 2)
+
+# Set a common title for the entire grid
+combined_plot <- layout(combined_plot, title = "Comparison of Stock Indices")
+
+# Show the combined plot
+combined_plot
 
 ```
-We can see from the plots that none of the indices seem to be stationary, as they are changing widely. No patterns seems to be discernible either.
+It appears that none of the stock indices are stationary based on the plots generated. These plots clearly show the presence of trends, which are a strong indicator of non-stationarity data. For instance, if we take the NASDAQ index as an example, it exhibits a noticeable upward trend between 1999 and the beginning of 2000.
 
-
+Another common approach is to use the Augmented-Dickey-Fuller (ADF) test. If we can reject the null hypothesis (p-value < 0.05), then we can consider the time-series to be stationary. The null hypothesis of this test is that the time series is non-stationary. If the p-value is less than your significance level, you can reject the null hypothesis and consider the series stationary.
 
 ```{r}
-#QUESTION B)
+# ADF - Test 
+adf_test_sp500 <- adf.test(sp500$SP500) ; adf_test_sp500
+adf_test_nasdaq <- adf.test(nasdaq$NASDAQ) ; adf_test_nasdaq
+adf_test_cac40 <- adf.test(cac40$CAC40) ; adf_test_cac40
+adf_test_nikkei <- adf.test(nikkei$NIKKEI) ; adf_test_nikkei
+```
 
+We can't reject any of the null hypothesis, implying that we do not have enough evidence to conclude that the data is stationary.
+
+## (b) Create a function to transform the daily stock indices into their daily negative log returns counterparts. Plot the latter series and assess their stationarity. To compare the series, also plot the negative log returns on a common scale to all indices.
+```{r}
 # Define a function to calculate negative log returns
-calculate_log_returns <- function(price_series) {
-  log_returns <- -diff(log(price_series))
+calculate_log_returns <- function(stocks) {
+  log_returns <- -diff(log(stocks))
   return(log_returns)
 }
-
 # Calculate negative log returns for each index
 log_returns_sp500 <- calculate_log_returns(sp500)
 log_returns_cac40 <- calculate_log_returns(cac40)
@@ -50,28 +73,41 @@ log_returns_nasdaq <- calculate_log_returns(nasdaq)
 log_returns_nikkei <- calculate_log_returns(nikkei)
 
 # Plot the log returns for each index
-
-# Create a common scale plot for negative log returns of all indices
 par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
-
 # Plot for SP500
 plot(log_returns_sp500, type = "l", col = "black", xlab = "Time", ylab = "Negative Log Returns", main = "SP500", ylim=c(0.1,-0.1))
 abline(h = 0, col = "red")  # Add a reference line at zero
-
 # Plot for CAC40
 plot(log_returns_cac40, type = "l", col = "black", xlab = "Time", ylab = "Negative Log Returns", main = "CAC40", ylim=c(0.1,-0.1))
 abline(h = 0, col = "red")
-
 # Plot for Nasdaq
 plot(log_returns_nasdaq, type = "l", col = "black", xlab = "Time", ylab = "Negative Log Returns", main = "Nasdaq", ylim=c(0.1,-0.1))
 abline(h = 0, col = "red")
-
 # Plot for NIKKEI
 plot(log_returns_nikkei, type = "l", col = "black", xlab = "Time", ylab = "Negative Log Returns", main = "NIKKEI", ylim=c(0.1,-0.1))
 abline(h = 0, col = "red")
-
 # Reset the plot layout
 par(mfrow = c(1, 1))
+
+
+```
+
+```{r}
+# PROBLEM WITH DATES 
+# Common scale 
+# Create a single interactive plot for all indices
+combined_plot <- plot_ly()
+# Add traces for each index
+combined_plot <- add_trace(combined_plot, x = 1:length(log_returns_sp500), y = log_returns_sp500, type = "scatter", mode = "lines", name = "SP500")
+combined_plot <- add_trace(combined_plot, x = 1:length(log_returns_cac40), y = log_returns_cac40, type = "scatter", mode = "lines", name = "CAC40")
+combined_plot <- add_trace(combined_plot, x = 1:length(log_returns_nasdaq), y = log_returns_nasdaq, type = "scatter", mode = "lines", name = "Nasdaq")
+combined_plot <- add_trace(combined_plot, x = 1:length(log_returns_nikkei), y = log_returns_nikkei, type = "scatter", mode = "lines", name = "NIKKEI")
+
+# Customize the layout
+combined_plot <- layout(combined_plot, title = "Comparison of Negative Log Returns", xaxis = list(title = "Time"), yaxis = list(title = "Negative Log Returns"), shapes = list(list(type = "line", x0 = 1, x1 = length(log_returns_sp500), y0 = 0, y1 = 0, line = list(color = "red"))))
+
+# Show the combined plot
+combined_plot
 
 ```
 
