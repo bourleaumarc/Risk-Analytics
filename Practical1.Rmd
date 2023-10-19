@@ -67,41 +67,35 @@ calculate_log_returns <- function(stocks) {
   log_returns <- -diff(log(stocks))
   return(log_returns)
 }
-
 # Calculate negative log returns for each index
 log_returns_sp500 <- calculate_log_returns(sp500)
 log_returns_cac40 <- calculate_log_returns(cac40)
 log_returns_nasdaq <- calculate_log_returns(nasdaq)
 log_returns_nikkei <- calculate_log_returns(nikkei)
 # We need to transform the index of rows as a separate variable to include the date into the plots: we create a function
-processDataFrame <- function(df) {
-  df$Date <- as.Date(rownames(df))
-  df <- df[, !names(df) %in% c('DATES')]
-  return(df)
-}
-processDataFrame(log_returns_sp500)
-
-
-log_returns_sp500$date <- as.Date(rownames(log_returns_sp500))
-rownames(log_returns_sp500) <- NULL
-log_returns_sp500 %>% select(-2)
-head(log_returns_sp500)
-
+log_returns_sp500$Dates <- rownames(log_returns_sp500)
+log_returns_sp500.df <- data.frame(log_returns_sp500)
+log_returns_cac40$Dates <- rownames(log_returns_cac40)
+log_returns_cac40.df <- data.frame(log_returns_cac40)
+log_returns_nasdaq$Dates <- rownames(log_returns_nasdaq)
+log_returns_nasdaq.df <- data.frame(log_returns_nasdaq)
+log_returns_nikkei$Dates <- rownames(log_returns_nikkei)
+log_returns_nikkei.df <- data.frame(log_returns_nikkei)
 # Plot for SP500
-plot_sp5002 <- plot_ly(x = 1:length(log_returns_sp500), y = log_returns_sp500, type = "scatter", mode = "lines", name = "SP500") %>% layout(title = "SP500 Negative Log Returns", xaxis = list(title = "Time"), yaxis = list(title = "Negative Log Returns"), shapes = list(list(type = "line", x0 = 1, x1 = length(log_returns_sp500), y0 = 0, y1 = 0, line = list(color = "red"))))
+plot_sp5002 <- plot_ly(x = log_returns_sp500.df$Dates, y = log_returns_sp500, type = "scatter", mode = "lines", name = "SP500") %>% layout(title = "SP500 Negative Log Returns", xaxis = list(title = "Time"), yaxis = list(title = "Negative Log Returns"), shapes = list(list(type = "line", x0 = 1, x1 = length(log_returns_sp500), y0 = 0, y1 = 0, line = list(color = "red"))))
 
 # Plot for CAC40
-plot_cac402 <- plot_ly(x = 1:length(log_returns_cac40), y = log_returns_cac40, type = "scatter", mode = "lines", name = "CAC40") %>% layout(title = "CAC40 Negative Log Returns", xaxis = list(title = "Time"), yaxis = list(title = "Negative Log Returns"), shapes = list(list(type = "line", x0 = 1, x1 = length(log_returns_cac40), y0 = 0, y1 = 0, line = list(color = "red"))))
+plot_cac402 <- plot_ly(x = log_returns_cac40.df$Dates, y = log_returns_cac40, type = "scatter", mode = "lines", name = "CAC40") %>% layout(title = "CAC40 Negative Log Returns", xaxis = list(title = "Time"), yaxis = list(title = "Negative Log Returns"), shapes = list(list(type = "line", x0 = 1, x1 = length(log_returns_cac40), y0 = 0, y1 = 0, line = list(color = "red"))))
 
 # Plot for Nasdaq
-plot_nasdaq2 <- plot_ly(x = 1:length(log_returns_nasdaq), y = log_returns_nasdaq, type = "scatter", mode = "lines", name = "Nasdaq") %>% layout(title = "Nasdaq Negative Log Returns", xaxis = list(title = "Time"), yaxis = list(title = "Negative Log Returns"), shapes = list(list(type = "line", x0 = 1, x1 = length(log_returns_nasdaq), y0 = 0, y1 = 0, line = list(color = "red"))))
+plot_nasdaq2 <- plot_ly(x = log_returns_nasdaq.df$Dates , y = log_returns_nasdaq, type = "scatter", mode = "lines", name = "Nasdaq") %>% layout(title = "Nasdaq Negative Log Returns", xaxis = list(title = "Time"), yaxis = list(title = "Negative Log Returns"), shapes = list(list(type = "line", x0 = 1, x1 = length(log_returns_nasdaq), y0 = 0, y1 = 0, line = list(color = "red"))))
 
 # Plot for NIKKEI
-plot_nikkei2 <- plot_ly(x = 1:length(log_returns_nikkei), y = log_returns_nikkei, type = "scatter", mode = "lines", name = "NIKKEI") %>% layout(title = "Negative Log Returns", xaxis = list(title = "Time"), yaxis = list(title = "Negative Log Returns"), shapes = list(list(type = "line", x0 = 1, x1 = length(log_returns_nikkei), y0 = 0, y1 = 0, line = list(color = "red"))))
+plot_nikkei2 <- plot_ly(x = log_returns_nikkei.df$Dates , y = log_returns_nikkei, type = "scatter", mode = "lines", name = "NIKKEI") %>% layout(title = "Negative Log Returns", xaxis = list(title = "Time"), yaxis = list(title = "Negative Log Returns"), shapes = list(list(type = "line", x0 = 1, x1 = length(log_returns_nikkei), y0 = 0, y1 = 0, line = list(color = "red"))))
 
 # Create a subplot with the list of individual plots
 combined_plot2 <- subplot(plot_sp5002, plot_cac402, plot_nasdaq2, plot_nikkei2, nrows = 2)
-combined_plot2 <- layout(combined_plot2, title = "Comparison of negative log return of Stock Indices")
+combined_plot2 <- layout(combined_plot2, title = "Comparison of negative log return of Stock Indices (same scale)")
 # Show the combined plot
 combined_plot2
 
