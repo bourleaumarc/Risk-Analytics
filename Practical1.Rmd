@@ -113,24 +113,6 @@ combined_plot2
 
 ```
 
-```{r}
-# PROBLEM WITH DATES 
-# Common scale 
-# Create a single interactive plot for all indices
-combined_plot <- plot_ly()
-# Add traces for each index
-combined_plot <- add_trace(combined_plot, x = 1:length(log_returns_sp500), y = log_returns_sp500, type = "scatter", mode = "lines", name = "SP500")
-combined_plot <- add_trace(combined_plot, x = 1:length(log_returns_cac40), y = log_returns_cac40, type = "scatter", mode = "lines", name = "CAC40")
-combined_plot <- add_trace(combined_plot, x = 1:length(log_returns_nasdaq), y = log_returns_nasdaq, type = "scatter", mode = "lines", name = "Nasdaq")
-combined_plot <- add_trace(combined_plot, x = 1:length(log_returns_nikkei), y = log_returns_nikkei, type = "scatter", mode = "lines", name = "NIKKEI")
-
-# Customize the layout
-combined_plot <- layout(combined_plot, title = "Comparison of Negative Log Returns", xaxis = list(title = "Time"), yaxis = list(title = "Negative Log Returns"), shapes = list(list(type = "line", x0 = 1, x1 = length(log_returns_sp500), y0 = 0, y1 = 0, line = list(color = "red"))))
-
-# Show the combined plot
-combined_plot
-
-```
 
 We are using negative log returns, since they allow us to see big losses, which is the main risk finance faces. From these log returns, we are able to get new plots, which validate the stationarity assumption.
 
