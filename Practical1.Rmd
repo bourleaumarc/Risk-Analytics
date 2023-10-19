@@ -72,6 +72,7 @@ log_returns_cac40 <- calculate_log_returns(cac40)
 log_returns_nasdaq <- calculate_log_returns(nasdaq)
 log_returns_nikkei <- calculate_log_returns(nikkei)
 
+log_returns_sp500 <- 
 # Plot the log returns for each index
 par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
 # Plot for SP500
