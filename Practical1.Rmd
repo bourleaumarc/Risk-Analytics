@@ -102,11 +102,9 @@ combined_plot2
 ```
 Looking at the comparison of negative logarithm return of the stock indices, we discern the following: 
 - mean is not constant: not centered around 0, implying that there is a long-term trend in the indexes.
-- variance is not constant: there are clear upward/downward trends. Ex: Nasdaq has very high spikes. 
+- variance is not constant: there are clear upward/downward trends. SP500 has very high spikes, such as the one in 1997-10-27.
 
-We are using negative log returns, since they allow us to see big losses, which is the main risk finance faces. From these log returns, we are able to get new plots, which validate the stationarity assumption.
-
-All indices have been set to the same scale, which allows us to see that Nasdaq witnesses higher spikes than all others, and SP500 seem to be the most consistent out of the 4 indices. We can also possibly see a seasonality on the Nikkei, but this would need to be confirmed by a test.
+Therefore, graphically, the indexes seem to be non-stationary. Moreover, we should check test ADF. 
 
 
 ```{r}
