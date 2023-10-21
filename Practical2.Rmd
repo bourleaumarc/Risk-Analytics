@@ -90,8 +90,8 @@ ggplot() +
 
 
 ```
-ASK WETHER WE SHOULD INCLUDE ALL DATA POINTS FROM THE WIKIPEDIA TABLE OR NOT
-
+-------------------------------------------------------------ASK WETHER WE SHOULD INCLUDE ALL DATA POINTS FROM THE WIKIPEDIA TABLE OR NOT----------------------------------------------------------------------------------------------
+-------------------------------------------------------------ASK HOW CAN WE VARY THE LOCATION PARAMETER --------------------------------------------------------------------------------------------------------------------------
 We can see that the predicted values are not representative of the observed values. The only value that is well-predicted is for the 13th of November 2019, as the Confidence Interval includes the actual value. 
 
 
@@ -101,16 +101,8 @@ library(extRemes)
 list_max_sea_levels <- unlist(venice_max$max_sea_level)
 gev_fix <- fevd(list_max_sea_levels, type = "GEV", time.units= "years")
 plot(gev_fix) ; gev_fix$results$par
-??fevd
-model <- gev.fit(venice_max$max_sea_level ~ venice_max$year, type = "location", data = venice_max)
-??ismev::gev.fit
-gev_time_varying <- fevd(venice_max, type = "GEV", time.units = "years", formula = max_sea_level ~ year)
-model <- gev.fit(venice_max$max_sea_level ~ venice_max$year, type = "location", data = venice_max)
 
-time_varying_gev_model <- gev.fit(venice_max$max_sea_level ~ venice_max$year, data = venice_max)
 
-mod3 <- fevd(rain.ann.max, type="GEV", time.units="years")
-plot(mod3)
-mod3$results$par #gives parameters of the GEV
+ #gives parameters of the GEV
 ```
 
