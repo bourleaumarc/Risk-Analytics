@@ -9,3 +9,11 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+(A)  Read in the data. Extract and represent the yearly max values from 1940 to 2009. What do you
+observe ?
+
+```{r}
+library(ismev)
+
+```
+
