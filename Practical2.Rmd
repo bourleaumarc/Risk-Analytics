@@ -79,15 +79,38 @@ max_real <- data.frame(year = c(2012, 2012, 2013, 2018, 2019, 2019, 2019, 2022),
 
 
 ggplot() +
-  geom_ribbon(data = venice_max_predict, aes(x = venice_max_predict$year, ymin = venice_max_predict$PredictedValues.fit.lwr, ymax = venice_max_predict$PredictedValues.fit.upr), fill = "blue", alpha = 0.3) +
-  geom_point(data = max_real, aes(x = max_real$year, y = max_real$max_sea_level), colour = "red", alpha = 0.5) +
-  geom_point(data = venice_max_predict, aes(x = venice_max_predict$year, y = venice_max_predict$PredictedValues.fit.fit))+
-  labs(title = "Real extreme values from 2010 to 2022 versus predicted values' confidence intervals", x = "Sea Level", y = "Year")
- 
+  geom_ribbon(data = venice_max_predict, aes(x = year, ymin = PredictedValues.fit.lwr, ymax = PredictedValues.fit.upr), fill = "blue", alpha = 0.3) +
+  geom_point(data = max_real, aes(x = year, y = max_sea_level, color = "Observed", colour = "red"), alpha = 0.5) +
+  geom_point(data = venice_max_predict, aes(x = year, y = PredictedValues.fit.fit, color = "Predicted"), shape = 1) +
+  labs(title = "Real extreme values from 2010 to 2022 versus predicted values' confidence intervals", x = "Year", y = "Sea Level") +
+  scale_x_continuous(breaks = unique(c(venice_max_predict$year, max_real$year))) +
+  scale_color_manual(name = "Data Type", values = c("Observed" = "red", "Predicted" = "black")) 
+
+
+
 
 ```
+ASK WETHER WE SHOULD INCLUDE ALL DATA POINTS FROM THE WIKIPEDIA TABLE OR NOT
+
+We can see that the predicted values are not representative of the observed values. The only value that is well-predicted is for the 13th of November 2019, as the Confidence Interval includes the actual value. 
 
 
+(d) Fit a GEV a with constant parameters to the historical yearly max values. Fit a GEV with time varying location parameter. Compare the two embedded models using likelihood ratio test (LRT). Show diagnostic plots.
+```{r}
+library(extRemes)
+list_max_sea_levels <- unlist(venice_max$max_sea_level)
+gev_fix <- fevd(list_max_sea_levels, type = "GEV", time.units= "years")
+plot(gev_fix) ; gev_fix$results$par
+??fevd
+model <- gev.fit(venice_max$max_sea_level ~ venice_max$year, type = "location", data = venice_max)
+??ismev::gev.fit
+gev_time_varying <- fevd(venice_max, type = "GEV", time.units = "years", formula = max_sea_level ~ year)
+model <- gev.fit(venice_max$max_sea_level ~ venice_max$year, type = "location", data = venice_max)
 
+time_varying_gev_model <- gev.fit(venice_max$max_sea_level ~ venice_max$year, data = venice_max)
 
+mod3 <- fevd(rain.ann.max, type="GEV", time.units="years")
+plot(mod3)
+mod3$results$par #gives parameters of the GEV
+```
 
