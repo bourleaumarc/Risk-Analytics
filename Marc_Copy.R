@@ -1,5 +1,5 @@
 library(ismev)
-#install.packages("VGAM")
+install.packages("plotrix")
 library(VGAM)
 data("venice90")
 venice <- venice90
@@ -34,3 +34,9 @@ for (year in unique_years) {
 # Print the resulting data frame
 print(max_sea_levels)
 
+ggplot() +
+  geom_ribbon(data = venice_max_predict, aes(x = year, ymin = PredictedValues.fit.lwr, ymax = PredictedValues.fit.upr), fill = "blue", alpha = 0.3) +
+  geom_point(data = max_real, aes(x = year, y = max_sea_level), colour = "red", alpha = 0.5) +
+  geom_point(data = venice_max_predict, aes(x = year, y = PredictedValues.fit.fit)) +
+  labs(title = "Real extreme values from 2010 to 2022 versus predicted values' confidence intervals", x = "Year", y = "Sea Level") +
+  scale_x_continuous(breaks = unique(c(venice_max_predict$year, max_real$year)))
