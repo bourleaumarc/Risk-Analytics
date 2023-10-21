@@ -14,6 +14,80 @@ observe ?
 
 ```{r}
 library(ismev)
+library(VGAM)
+library(tidyverse)
+library(plotly)
+library(plotrix) 
+library(scales)
+```
+
+
+```{r}
+#QUESTION A
+
+#Read the Data
+venice <- venice90
+
+venice_max <- venice %>%
+  group_by(year) %>%
+  summarise(max_sea_level = max(sealevel))
+
+head(venice_max)
+
+plot_ly(venice_max, x = ~year, y = ~max_sea_level, type = 'scatter', mode = 'markers', name = 'Max Value') %>% layout(title = "Maximum Value per year", xaxis = list(title="Year"), yaxis = list(title="Maximum Value"))  %>% add_segments(x = 1940, xend = 2009, y = 140, yend = 140, line = list(color = 'red', width = 2))
 
 ```
+
+We will be using the Peak over threshold method for this part. From the plot, we can see that there are a total of 11 outliers in the data over the threshold of 140 (red line), with 1966 being the highest value overall.
+
+
+```{r}
+#QUESTION B
+
+# making predictions with linear models (remainder)
+mod1 <- lm(max_sea_level ~ year, data = venice_max)
+summary(mod1)
+
+# making predictions for 5 years
+mod1_predict <- predict.lm(mod1,newdata=data.frame("year"=c(2010:2022)),se=T, interval = "confidence", level = 0.95)
+mod1_predict
+
+```
+
+Globally, from the confidence intervals, the values range from 124 to 146, which doesn't provide a very good fit for the model. This may be due to the lack of historical data to accompany the model.
+
+
+
+```{r}
+#QUESTION C
+
+#Add the model in a data frame
+venice_max_predict <- data.frame(
+  PredictedValues = mod1_predict
+) %>% 
+  mutate(year = c(2010:2022))
+venice_max_predict 
+
+#Plot the confidence intervals
+plotCI(x = venice_max_predict$year,
+       y = venice_max_predict$PredictedValues.fit.fit,
+       li = venice_max_predict$PredictedValues.fit.lwr,
+       ui = venice_max_predict$PredictedValues.fit.upr)
+
+#Create a new dataframe for the extreme values of 2010 - 2022
+max_real <- data.frame(year = c(2012, 2012, 2013, 2018, 2019, 2019, 2019, 2022), max_sea_level = c(143, 149, 143, 156, 187, 144, 154, 204))
+
+
+ggplot() +
+  geom_ribbon(data = venice_max_predict, aes(x = venice_max_predict$year, ymin = venice_max_predict$PredictedValues.fit.lwr, ymax = venice_max_predict$PredictedValues.fit.upr), fill = "blue", alpha = 0.3) +
+  geom_point(data = max_real, aes(x = max_real$year, y = max_real$max_sea_level), colour = "red", alpha = 0.5) +
+  geom_point(data = venice_max_predict, aes(x = venice_max_predict$year, y = venice_max_predict$PredictedValues.fit.fit))+
+  labs(title = "Real extreme values from 2010 to 2022 versus predicted values' confidence intervals", x = "Sea Level", y = "Year")
+ 
+
+```
+
+
+
+
 
