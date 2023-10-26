@@ -114,4 +114,32 @@ print(lrtresults)
 The test statistic (3.3676) is less than the critical value (3.8415), and the p-value (0.06649) is greater than the significance level (0.05). This suggests that there is not enough evidence to reject the null hypothesis, meaning that there may not be a significant difference between the two models, and the simpler model with constant parameters may be sufficient. 
 
 
+```{r}
+
+# Fit a GEV model with time-varying scale and shape parameters
+gev_time_varying_scale_shape <- fevd(list_max_sea_levels, type = "GEV", time.units = "years", scale.fun = ~year, shape.fun = ~year)
+
+# Plot the diagnostic plots for the time-varying scale and shape model
+plot(gev_time_varying_scale_shape)
+
+
+```
+```{r}
+# Compare the model with time-varying scale and shape to the constant parameter model using LRT
+lrt_result_scale_shape <- lr.test(gev_time_varying_scale_shape, gev_fix)
+
+# View the LRT result
+print(lrt_result_scale_shape)
+
+# Determine the significance level (e.g., 0.05)
+significance_level <- 0.05
+
+# Compare the p-value to the significance level
+if (lrt_result_scale_shape$p.value < significance_level) {
+  cat("The model with time-varying scale and shape parameters is preferred.\n")
+} else {
+  cat("The constant parameter model is preferred.\n")
+}
+
+```
 
