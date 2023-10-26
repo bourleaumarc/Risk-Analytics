@@ -115,6 +115,7 @@ The test statistic (3.3676) is less than the critical value (3.8415), and the p-
 
 
 ```{r}
+#QUESTION E)
 
 # Fit a GEV model with time-varying scale and shape parameters
 gev_time_varying_scale_shape <- fevd(list_max_sea_levels, type = "GEV", time.units = "years", scale.fun = ~year, shape.fun = ~year)
@@ -125,6 +126,9 @@ plot(gev_time_varying_scale_shape)
 
 ```
 ```{r}
+
+#Suite QUESTION E)
+
 # Compare the model with time-varying scale and shape to the constant parameter model using LRT
 lrt_result_scale_shape <- lr.test(gev_time_varying_scale_shape, gev_fix)
 
@@ -142,4 +146,5 @@ if (lrt_result_scale_shape$p.value < significance_level) {
 }
 
 ```
+
 
