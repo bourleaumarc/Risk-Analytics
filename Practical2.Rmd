@@ -38,7 +38,7 @@ plot_ly(venice_max, x = ~year, y = ~max_sea_level, type = 'scatter', mode = 'mar
 
 ```
 
-We will be using the Peak over threshold method for this part. From the plot, we can see that there are a total of 11 outliers in the data over the threshold of 140 (red line), with 1966 being the highest value overall.
+From the plot, we can observe that there are a total of 11 data points over the threshold of 140 (represented by the red line). The highest record sea level, which occured in 1966, stands out as the peak value in the dataset.
 
 
 ```{r}
@@ -54,8 +54,7 @@ mod1_predict
 
 ```
 
-Globally, from the confidence intervals, the values range from 124 to 146, which doesn't provide a very good fit for the model. This may be due to the lack of historical data to accompany the model.
-
+Overall, the confidence intervals show that the values range from 124 to 146, which doesn't provide a very good fit for the model. This may be due to the lack of historical data or that linear models do not capture effectively the changes of the sea-level. 
 
 
 ```{r}
@@ -102,7 +101,14 @@ list_max_sea_levels <- unlist(venice_max$max_sea_level)
 gev_fix <- fevd(list_max_sea_levels, type = "GEV", time.units= "years")
 plot(gev_fix) ; gev_fix$results$par
 
+# Fit a GEV model with time-varying location parameters
+gev_time_varying <- fevd(list_max_sea_levels, type = "GEV", time.units = "years", location.fun = ~year)
+plot(gev_time_varying)
 
- #gives parameters of the GEV
+#compare models with LRT
+
+lrtresults <- lr.test(gev_time_varying, gev_fix)
+
+print(lrtresults)
 ```
 
