@@ -103,7 +103,7 @@ plot(gev_fix) ; gev_fix$results$par
 
 # Fit a GEV model with time-varying location parameters
 gev_time_varying <- fevd(list_max_sea_levels, type = "GEV", time.units = "years", location.fun = ~year)
-plot(gev_time_varying)
+plot(gev_time_varying) ; gev_time_varying$results$par
 
 #compare models with LRT
 
@@ -111,4 +111,7 @@ lrtresults <- lr.test(gev_time_varying, gev_fix)
 
 print(lrtresults)
 ```
+The test statistic (3.3676) is less than the critical value (3.8415), and the p-value (0.06649) is greater than the significance level (0.05). This suggests that there is not enough evidence to reject the null hypothesis, meaning that there may not be a significant difference between the two models, and the simpler model with constant parameters may be sufficient. 
+
+
 
