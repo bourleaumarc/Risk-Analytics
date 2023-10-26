@@ -9,9 +9,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-(A)  Read in the data. Extract and represent the yearly max values from 1940 to 2009. What do you
-observe ?
-
 ```{r}
 library(ismev)
 library(VGAM)
@@ -19,53 +16,49 @@ library(tidyverse)
 library(plotly)
 library(plotrix) 
 library(scales)
+library(extRemes)
 ```
 
-
+(A)  Read in the data. Extract and represent the yearly max values from 1940 to 2009. What do you
+observe ?
 ```{r}
-#QUESTION A
-
-#Read the Data
+# Read the Data
 venice <- venice90
-
+# Using block maxima approach to have the maximum sea level per year 
 venice_max <- venice %>%
   group_by(year) %>%
   summarise(max_sea_level = max(sealevel))
-
 head(venice_max)
-
 plot_ly(venice_max, x = ~year, y = ~max_sea_level, type = 'scatter', mode = 'markers', name = 'Max Value') %>% layout(title = "Maximum Value per year", xaxis = list(title="Year"), yaxis = list(title="Maximum Value"))  %>% add_segments(x = 1940, xend = 2009, y = 140, yend = 140, line = list(color = 'red', width = 2))
 
 ```
 
-From the plot, we can observe that there are a total of 11 data points over the threshold of 140 (represented by the red line). The highest record sea level, which occured in 1966, stands out as the peak value in the dataset.
+From the plot, we can discern that there are a total of 11 data points that surpass the 140 cm threshold, marked by the red line. The highest recorded sea level, occurring in 1966, is notably distinct as the peak value in the dataset, reaching 192 cm. When considering the distribution of the maximum values each year, there's a hint of a potential trend in the data. Whether extreme values are stationary or not will be investigated in (D) using likelihood ratio test. 
 
-
+(B) We are end of 2009 and would like to predict the yearly maximum values over the next 13 years (from 2010 to 2022). A naive approach consists of fitting a linear model on the observed
+yearly maxima and predict their values for 2010-2022. Proceed to this prediction and provide confidence intervals.
 ```{r}
-#QUESTION B
-
-# making predictions with linear models (remainder)
+# Create linear model 
 mod1 <- lm(max_sea_level ~ year, data = venice_max)
 summary(mod1)
 
-# making predictions for 5 years
+# Predictions of 13 next years using the linear model 
 mod1_predict <- predict.lm(mod1,newdata=data.frame("year"=c(2010:2022)),se=T, interval = "confidence", level = 0.95)
 mod1_predict
 
 ```
 
-Overall, the confidence intervals show that the values range from 124 to 146, which doesn't provide a very good fit for the model. This may be due to the lack of historical data or that linear models do not capture effectively the changes of the sea-level. 
 
+As anticipated, the simple approach leads to poor predictions, with confidence intervals spanning from 124 to 146. The main reason for this lackluster performance is the  violation of key assumptions in linear modeling when dealing with extreme values, such as: linearity, homoescedasticity and increased sensitivity to outliers. Consequently, we will turn to specialized models rooted in the realm of extreme value theory to address these challenges more effectively.
 
-```{r}
-#QUESTION C
+(C) Represent in the same graph the predicted yearly max values for the period 2010-2022, their pointwise confidence bounds and the observed values greater than 140 cm from the table below.
+```{r, warning = FALSE}
 
-#Add the model in a data frame
+# Stored the predictions in a dataframe 
 venice_max_predict <- data.frame(
-  PredictedValues = mod1_predict
-) %>% 
+  PredictedValues = mod1_predict) %>% 
   mutate(year = c(2010:2022))
-venice_max_predict 
+head(venice_max_predict)
 
 #Plot the confidence intervals
 plotCI(x = venice_max_predict$year,
@@ -73,44 +66,64 @@ plotCI(x = venice_max_predict$year,
        li = venice_max_predict$PredictedValues.fit.lwr,
        ui = venice_max_predict$PredictedValues.fit.upr)
 
-#Create a new dataframe for the extreme values of 2010 - 2022
+#Create a new dataframe for the extreme values of 2010 - 2022 (table from Wikipedia)
 max_real <- data.frame(year = c(2012, 2012, 2013, 2018, 2019, 2019, 2019, 2022), max_sea_level = c(143, 149, 143, 156, 187, 144, 154, 204))
 
-
-ggplot() +
-  geom_ribbon(data = venice_max_predict, aes(x = year, ymin = PredictedValues.fit.lwr, ymax = PredictedValues.fit.upr), fill = "blue", alpha = 0.3) +
-  geom_point(data = max_real, aes(x = year, y = max_sea_level, color = "Observed", colour = "red"), alpha = 0.5) +
-  geom_point(data = venice_max_predict, aes(x = year, y = PredictedValues.fit.fit, color = "Predicted"), shape = 1) +
-  labs(title = "Real extreme values from 2010 to 2022 versus predicted values' confidence intervals", x = "Year", y = "Sea Level") +
+# Create the ggplot object
+venice_plot <- ggplot() +
+  geom_point(data = max_real, aes(x = year, y = max_sea_level, color = "Observed"), alpha = 0.5, show.legend = TRUE, name = "Observed") +
+  geom_point(data = venice_max_predict, aes(x = year, y = PredictedValues.fit.fit, color = "Predicted"), shape = 1, show.legend = TRUE, name = "Predicted") +
+  labs(title = "Predicted Yearly Max Values vs Observed Values (>140cm)", x = "Year", y = "Sea Level") +
   scale_x_continuous(breaks = unique(c(venice_max_predict$year, max_real$year))) +
-  scale_color_manual(name = "Data Type", values = c("Observed" = "red", "Predicted" = "black")) 
+  scale_color_manual(name = "Data Type", values = c("Observed" = "red", "Predicted" = "black")) +
+  theme(legend.title = element_blank())
 
+# Convert the ggplot object to a Plotly interactive plot
+interactive_venice_plot <- ggplotly(venice_plot)
 
+# Add the confidence interval as a separate trace
+interactive_venice_plot <- interactive_venice_plot %>%
+  add_ribbons(data = venice_max_predict, x = ~year, ymin = ~PredictedValues.fit.lwr, ymax = ~PredictedValues.fit.upr, color = I("blue"), showlegend = TRUE, name = "Confidence Interval")
 
+# Display the interactive plot
+interactive_venice_plot
 
 ```
--------------------------------------------------------------ASK WETHER WE SHOULD INCLUDE ALL DATA POINTS FROM THE WIKIPEDIA TABLE OR NOT----------------------------------------------------------------------------------------------
--------------------------------------------------------------ASK HOW CAN WE VARY THE LOCATION PARAMETER --------------------------------------------------------------------------------------------------------------------------
-We can see that the predicted values are not representative of the observed values. The only value that is well-predicted is for the 13th of November 2019, as the Confidence Interval includes the actual value. 
+As previously noted and showcased in the plot, the predictions of extreme values using a linear model exhibit significant shortcomings. The predicted values follow a linear pattern and consistently fall short of accurately capturing extreme events. There is one exception, the observation on the 13th of November 2019, for which the Confidence Interval of the predicted value aligns well with the actual value. Nonetheless, even in this case, the model underestimates the observed value by approximately 9 cm, a substantial deviation.
+
+To address these limitations, we are turning to the Generalized Extreme Value (GEV) distribution, a more suitable approach for modeling extreme events.
 
 
-(d) Fit a GEV a with constant parameters to the historical yearly max values. Fit a GEV with time varying location parameter. Compare the two embedded models using likelihood ratio test (LRT). Show diagnostic plots.
+(D) Fit a GEV a with constant parameters to the historical yearly max values. Fit a GEV with time varying location parameter. Compare the two embedded models using likelihood ratio test (LRT). Show diagnostic plots.
+
 ```{r}
-library(extRemes)
+# First we unlist our data frame
 list_max_sea_levels <- unlist(venice_max$max_sea_level)
-gev_fix <- fevd(list_max_sea_levels, type = "GEV", time.units= "years")
-plot(gev_fix) ; gev_fix$results$par
+# GEV model with fixed location 
+gev_fix <- fevd(list_max_sea_levels, type = "GEV", time.units= "year")
+plot(gev_fix) ; gev_fix$results$par ; return.level(gev_fix) # shape is almost equal to 0.
+# Compute confidence interval 
+ci(gev_fix, type= "parameter") # CI includes 0
+# GEV model with varying time-location 
+gev_time_varying <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units= "year", location.fun = ~year)
+plot(gev_time_varying) ; gev_time_varying$results$par ; return.level(gev_time_varying)
+# Compare the two models using likelihood ratio test: Ho: no significant difference in model fit H1: there is a significant difference in model fit between the two models.
+lrt_result <- lr.test(gev_fix, gev_time_varying) # we can almost reject the null hypothesis at 95% significant level, which make sense as we have indications that the distribution is non-stationary
+plot(lrt_result) # can't show diagnostic plot for some reason 
 
-# Fit a GEV model with time-varying location parameters
-gev_time_varying <- fevd(list_max_sea_levels, type = "GEV", time.units = "years", location.fun = ~year)
-plot(gev_time_varying) ; gev_time_varying$results$par
-
-#compare models with LRT
-
-lrtresults <- lr.test(gev_time_varying, gev_fix)
-
-print(lrtresults)
 ```
+The shape parameter, which is nearly close to 0, suggests that the extreme values of the fixed GEV model closely follow a Gumbel distribution, characterized by an exponential tail. To test this hypothesis, we calculated a confidence interval using the `ci` function in the `extRemes` package. The confidence interval demonstrates that the shape parameter includes 0, indicating that it is not significantly different from 0.
+
+Furthermore, by comparing the two embedded models, `gev_fix` and `gev_time_varying`, through a likelihood ratio test, we aim to evaluate whether the distribution of extreme values in our dataset exhibits stationarity or non-stationarity. The results at a 95% significance level do not provide sufficient evidence to reject the null hypothesis. However, at a 90% significance level, we find strong indications that our distribution may not be stationary, suggesting the presence of time-dependent patterns.
+
+
+(F) Either find a predict function with a package or do it by hand, if by hand need to compute the mu for 2010-2022 and : 1-pchisq(-2*(mod2$nllh-mod1$nllh),1); k = 13. Return level should be between 139 and 157. 
+
+
+
+```
+Our extreme value follow a Gumbell distribution, as it exhibits a heavy-right tail in which probabilities of extreme values decrease exponentially as values become larger (density plot). As the shape parameter is -0.03, we could have conclude the same results about the extreme values following a Gumbell distribution. 
+
 The test statistic (3.3676) is less than the critical value (3.8415), and the p-value (0.06649) is greater than the significance level (0.05). This suggests that there is not enough evidence to reject the null hypothesis, meaning that there may not be a significant difference between the two models, and the simpler model with constant parameters may be sufficient. 
 
 
