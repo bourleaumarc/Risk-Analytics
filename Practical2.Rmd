@@ -18,7 +18,7 @@ library(plotrix)
 library(scales)
 library(extRemes)
 ```
-
+# Part 1: Venice 
 (A)  Read in the data. Extract and represent the yearly max values from 1940 to 2009. What do you
 observe ?
 ```{r}
@@ -97,6 +97,7 @@ To address these limitations, we are turning to the Generalized Extreme Value (G
 (D) Fit a GEV a with constant parameters to the historical yearly max values. Fit a GEV with time varying location parameter. Compare the two embedded models using likelihood ratio test (LRT). Show diagnostic plots.
 
 ```{r}
+########################################## extRemes ##########################################
 # First we unlist our data frame
 list_max_sea_levels <- unlist(venice_max$max_sea_level)
 # GEV model with fixed location 
@@ -104,60 +105,55 @@ gev_fix <- fevd(list_max_sea_levels, type = "GEV", time.units= "year")
 plot(gev_fix) ; gev_fix$results$par ; return.level(gev_fix) # shape is almost equal to 0.
 # Compute confidence interval 
 ci(gev_fix, type= "parameter") # CI includes 0
-# GEV model with varying time-location 
-gev_time_varying <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units= "year", location.fun = ~year)
-plot(gev_time_varying) ; gev_time_varying$results$par ; return.level(gev_time_varying)
+# GEV model with varying time-location using both linear and harmonic function 
+gev_time_varying_linear <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units= "year", location.fun = ~ year )
+gev_time_varying_harmonic <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units= "year", location.fun = ~sin(2 * pi * (year - 1940)/70) + cos(2 * pi * (year - 1940)/70))
+
+plot(gev_time_varying_linear) ; plot(gev_time_varying_harmonic) ; gev_time_varying_linear$results$par ; gev_time_varying_harmonic$results$par;  return.level(gev_time_varying_linear) ; return.level(gev_time_varying_harmonic) 
 # Compare the two models using likelihood ratio test: Ho: no significant difference in model fit H1: there is a significant difference in model fit between the two models.
-lrt_result <- lr.test(gev_fix, gev_time_varying) # we can almost reject the null hypothesis at 95% significant level, which make sense as we have indications that the distribution is non-stationary
-plot(lrt_result) # can't show diagnostic plot for some reason 
-
-```
-The shape parameter, which is nearly close to 0, suggests that the extreme values of the fixed GEV model closely follow a Gumbel distribution, characterized by an exponential tail. To test this hypothesis, we calculated a confidence interval using the `ci` function in the `extRemes` package. The confidence interval demonstrates that the shape parameter includes 0, indicating that it is not significantly different from 0.
-
-Furthermore, by comparing the two embedded models, `gev_fix` and `gev_time_varying`, through a likelihood ratio test, we aim to evaluate whether the distribution of extreme values in our dataset exhibits stationarity or non-stationarity. The results at a 95% significance level do not provide sufficient evidence to reject the null hypothesis. However, at a 90% significance level, we find strong indications that our distribution may not be stationary, suggesting the presence of time-dependent patterns.
-
-
-(F) Either find a predict function with a package or do it by hand, if by hand need to compute the mu for 2010-2022 and : 1-pchisq(-2*(mod2$nllh-mod1$nllh),1); k = 13. Return level should be between 139 and 157. 
-
+lrt_result_linear <- lr.test(gev_fix, gev_time_varying_linear) # we can almost reject the null hypothesis at 95% significant level, which make sense as we have indications that the distribution is non-stationary
+lrt_result_harmonic <-lr.test(gev_fix, gev_time_varying_harmonic) 
 
 
 ```
-Our extreme value follow a Gumbell distribution, as it exhibits a heavy-right tail in which probabilities of extreme values decrease exponentially as values become larger (density plot). As the shape parameter is -0.03, we could have conclude the same results about the extreme values following a Gumbell distribution. 
 
-The test statistic (3.3676) is less than the critical value (3.8415), and the p-value (0.06649) is greater than the significance level (0.05). This suggests that there is not enough evidence to reject the null hypothesis, meaning that there may not be a significant difference between the two models, and the simpler model with constant parameters may be sufficient. 
+We initially observed that the shape parameter of the fixed Generalized Extreme Value (GEV) model was close to 0. This suggested that the extreme values closely follow a Gumbel distribution, which is characterized by an exponential tail. To confirm this hypothesis, we calculated a confidence interval using the ci function in the extRemes package. The resulting confidence interval included 0, indicating that the shape parameter was not significantly different from 0.
+
+Next, we aimed to fit a GEV model with time-varying location parameters. We explored two different functions: linear and harmonic. The linear function assumed that "Year" is treated as a linear predictor, and the location parameter is assumed to change linearly over time. However, the likelihood ratio test indicated that the fixed GEV model (stationary) was a better fit. This result made sense because while there were some patterns in the maximum values, the linear function did not capture the entire variability of the data.
+
+On the other hand, the harmonic function, which is often used to model periodic phenomena, yielded a different outcome. It allowed us to reject the null hypothesis of the likelihood ratio test, indicating that the GEV model with time-varying location parameters was a better fit. This result suggested that our maximum values displayed non-stationary behavior.
 
 
+
+(E) Add if necessary a time varying scale and or shape GEV parameter. Select the best model according to LRT.
 ```{r}
-#QUESTION E)
-
 # Fit a GEV model with time-varying scale and shape parameters
-gev_time_varying_scale_shape <- fevd(list_max_sea_levels, type = "GEV", time.units = "years", scale.fun = ~year, shape.fun = ~year)
-
+gev_time_varying_scale_shape_location <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", scale.fun = ~sin(2 * pi * (year - 1940)/70) + cos(2 * pi * (year - 1940)/70), shape.fun = ~sin(2 * pi * (year - 1940)/70) + cos(2 * pi * (year - 1940)/70), location.fun = ~sin(2 * pi * (year - 1940)/70) + cos(2 * pi * (year - 1940)/70))
 # Plot the diagnostic plots for the time-varying scale and shape model
-plot(gev_time_varying_scale_shape)
-
+plot(gev_time_varying_scale_shape_location)
+# Compare the two models using likelihood ratio test: Ho: simple model-->no significant difference in model fit H1: complex model -->there is a significant difference in model fit between the two models.
+lrt_result_fix_scale_shape <- lr.test(gev_fix, gev_time_varying_scale_shape_location) 
+lrt_result_harmonic_scale_shape_location <- lr.test(gev_time_varying_harmonic, gev_time_varying_scale_shape_location) 
 
 ```
+According to the LRT between the fixed GEV and the GEV with time varying locations (location, shape and size), we can reject the null hypothesis. This indicates that the more complex model provides a significantly better fit to the data. Furthermore, we conclude that the increase of complexity (adding time varying scale and shape) is not necessary because it does not provide a better fit. 
+
+In conclusion, the best model to use is the GEV with time varying location parameter. 
+
+(F) Predict the 13-years return level, each year from 2010 to 2022.
 ```{r}
-
-#Suite QUESTION E)
-
-# Compare the model with time-varying scale and shape to the constant parameter model using LRT
-lrt_result_scale_shape <- lr.test(gev_time_varying_scale_shape, gev_fix)
-
-# View the LRT result
-print(lrt_result_scale_shape)
-
-# Determine the significance level (e.g., 0.05)
-significance_level <- 0.05
-
-# Compare the p-value to the significance level
-if (lrt_result_scale_shape$p.value < significance_level) {
-  cat("The model with time-varying scale and shape parameters is preferred.\n")
-} else {
-  cat("The constant parameter model is preferred.\n")
-}
-
+return.level(gev_time_varying_harmonic)
+as.numeric(mod3$results$par[1]+mod3$results$par[2]*((-log(1-1/13))^(-mod3$results$par[3])-1)/mod3$results$par[3])
+RL = μ_T + σ_T / ξ * [1 - (-log(1 - 1/13))^ξ]
+# 2010
+as.numeric()
 ```
 
 
+Either find a predict function with a package or do it by hand, if by hand need to compute the mu for 2010-2022 and : 1-pchisq(-2*(mod2$nllh-mod1$nllh),1); k = 13. Return level should be between 139 and 157. 
+
+
+
+
+
+# Part 2: nuclear reactors 
