@@ -143,7 +143,9 @@ In conclusion, the best model to use is the GEV with time varying location param
 (F) Predict the 13-years return level, each year from 2010 to 2022.
 ```{r}
 return.level(gev_time_varying_harmonic)
-as.numeric(mod3$results$par[1]+mod3$results$par[2]*((-log(1-1/13))^(-mod3$results$par[3])-1)/mod3$results$par[3])
+as.numeric(gev_time_varying_harmonic$results$par[1]+gev_time_varying_harmonic$results$par[4]*((-log(1-1/13))^(-gev_time_varying_harmonic$results$par[5])-1)/gev_time_varying_harmonic$results$par[5])
+# this is our parameter 1 for 2010.
+
 # RL = μ_T + σ_T / ξ * [1 - (-log(1 - 1/13))^ξ]
 # 2010
 as.numeric()
