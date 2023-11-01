@@ -144,7 +144,7 @@ In conclusion, the best model to use is the GEV with time varying location param
 ```{r}
 return.level(gev_time_varying_harmonic)
 as.numeric(mod3$results$par[1]+mod3$results$par[2]*((-log(1-1/13))^(-mod3$results$par[3])-1)/mod3$results$par[3])
-RL = μ_T + σ_T / ξ * [1 - (-log(1 - 1/13))^ξ]
+# RL = μ_T + σ_T / ξ * [1 - (-log(1 - 1/13))^ξ]
 # 2010
 as.numeric()
 ```
