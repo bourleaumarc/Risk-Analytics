@@ -106,15 +106,17 @@ plot(gev_fix) ; gev_fix$results$par ; return.level(gev_fix) # shape is almost eq
 # Compute confidence interval 
 ci(gev_fix, type= "parameter") # CI includes 0
 # GEV model with varying time-location using both linear and harmonic function 
-gev_time_varying_linear <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units= "year", location.fun = ~ year )
+yy <- 1:length(venice_max$year) 
+gev_time_varying_linear <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units= "year", location.fun = ~ yy)
 gev_time_varying_harmonic <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units= "year", location.fun = ~sin(2 * pi * (year - 1940)/70) + cos(2 * pi * (year - 1940)/70))
 
 plot(gev_time_varying_linear) ; plot(gev_time_varying_harmonic) ; gev_time_varying_linear$results$par ; gev_time_varying_harmonic$results$par;  return.level(gev_time_varying_linear) ; return.level(gev_time_varying_harmonic) 
 # Compare the two models using likelihood ratio test: Ho: no significant difference in model fit H1: there is a significant difference in model fit between the two models.
 lrt_result_linear <- lr.test(gev_fix, gev_time_varying_linear) # we can almost reject the null hypothesis at 95% significant level, which make sense as we have indications that the distribution is non-stationary
 lrt_result_harmonic <-lr.test(gev_fix, gev_time_varying_harmonic) 
-
-
+attributes(gev_time_varying_linear)
+# 589.5372 linear --> this is sufficient as lower AIC 
+# 594.9147 harmonic --> too complex, we stick with the linear (time varying location)
 ```
 
 We initially observed that the shape parameter of the fixed Generalized Extreme Value (GEV) model was close to 0. This suggested that the extreme values closely follow a Gumbel distribution, which is characterized by an exponential tail. To confirm this hypothesis, we calculated a confidence interval using the ci function in the extRemes package. The resulting confidence interval included 0, indicating that the shape parameter was not significantly different from 0.
@@ -127,28 +129,38 @@ On the other hand, the harmonic function, which is often used to model periodic 
 
 (E) Add if necessary a time varying scale and or shape GEV parameter. Select the best model according to LRT.
 ```{r}
-# Fit a GEV model with time-varying scale and shape parameters
-gev_time_varying_scale_shape_location <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", scale.fun = ~sin(2 * pi * (year - 1940)/70) + cos(2 * pi * (year - 1940)/70), shape.fun = ~sin(2 * pi * (year - 1940)/70) + cos(2 * pi * (year - 1940)/70), location.fun = ~sin(2 * pi * (year - 1940)/70) + cos(2 * pi * (year - 1940)/70))
-# Plot the diagnostic plots for the time-varying scale and shape model
-plot(gev_time_varying_scale_shape_location)
-# Compare the two models using likelihood ratio test: Ho: simple model-->no significant difference in model fit H1: complex model -->there is a significant difference in model fit between the two models.
-lrt_result_fix_scale_shape <- lr.test(gev_fix, gev_time_varying_scale_shape_location) 
-lrt_result_harmonic_scale_shape_location <- lr.test(gev_time_varying_harmonic, gev_time_varying_scale_shape_location) 
+# Fit a GEV model with time-varying scale 
+gev_time_varying_scale <-  fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", scale.fun = ~ yy) # AIC: 600
+gev_time_varying_shape <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", shape.fun = ~ yy) # AIC:  600.7072 
+gev_time_varying_scale_shape <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", shape.fun = ~ yy, scale.fun = ~ yy ) # AIC: 601.9
+gev_time_varying_location_scale <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", scale.fun = ~ yy, location.fun =  ~ yy) # AIC: 590.6
+gev_time_varying_location_shape <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", shape.fun = ~ yy, location.fun =  ~ yy) # AIC: 586
+gev_time_varying_scale_shape_location <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", shape.fun = ~ yy, location.fun =  ~ yy, scale.fun = ~ yy ) # AIC: 586 
+lrt_result <- lr.test(gev_time_varying_location_shape, gev_time_varying_scale_shape_location) # can't reject the null hypothesis so we decide to choose the gev_time_varying_location_shape 
 
 ```
-According to the LRT between the fixed GEV and the GEV with time varying locations (location, shape and size), we can reject the null hypothesis. This indicates that the more complex model provides a significantly better fit to the data. Furthermore, we conclude that the increase of complexity (adding time varying scale and shape) is not necessary because it does not provide a better fit. 
-
-In conclusion, the best model to use is the GEV with time varying location parameter. 
+After comparing the AIC of the models above, it aprears that the best models are the "gev_time_varying_location_shape" and "gev_time_varying_scale_shape_location", for which we did the LRT test. it shows us that the best model is the less complex one: the "gev_time_varying_location_shape".
 
 (F) Predict the 13-years return level, each year from 2010 to 2022.
 ```{r}
-return.level(gev_time_varying_harmonic)
-as.numeric(gev_time_varying_harmonic$results$par[1]+gev_time_varying_harmonic$results$par[4]*((-log(1-1/13))^(-gev_time_varying_harmonic$results$par[5])-1)/gev_time_varying_harmonic$results$par[5])
-# this is our parameter 1 for 2010.
+return_levels_df <- data.frame(return_level = numeric())  # Create an empty data frame with a column "return_level"
 
-# RL = μ_T + σ_T / ξ * [1 - (-log(1 - 1/13))^ξ]
-# 2010
-as.numeric()
+for (i in 71:83) {
+  loc <- gev_time_varying_location_shape$results$par[1] + gev_time_varying_location_shape$results$par[2] * i
+  scale <- gev_time_varying_location_shape$results$par[3]
+  shape <- gev_time_varying_location_shape$results$par[4] + gev_time_varying_location_shape$results$par[5] * i
+
+  return_level <- qgev(1 - 1/13, location = loc, scale = scale, shape = shape)
+  return_levels_df <- rbind(return_levels_df, data.frame(return_level = return_level))
+}
+
+# Assign sequential numeric row names
+rownames(return_levels_df) <- 1:nrow(return_levels_df)
+
+print(return_levels_df)
+
+ 
+
 ```
 
 
