@@ -164,6 +164,32 @@ print(return_levels_df)
 ```
 
 
+```{r}
+rlci<- data.frame(return_level = numeric(), Lower_CI = numeric(), Upper_CI = numeric())
+B <- 5
+return_level <- numeric(B)
+
+
+for (i in 1:13){
+  
+  for(j in 1:B){
+      
+    data <- suppressWarnings(rgev(70, loc = gev_time_varying_location_shape$results$par[1] + gev_time_varying_location_shape$results$par[2] * (70+i), scale = gev_time_varying_location_shape$results$par[3], shape = gev_time_varying_location_shape$results$par[4] + gev_time_varying_location_shape$results$par[5] * (70+i)))
+    
+    fit <- suppressWarnings(fevd(data, venice_max, type = "GEV", time.units = "year", shape.fun = ~ yy, location.fun =  ~ yy))
+    
+    return_level[j] <- qgev(1 - 1/13, location = fit$results$par[1] + fit$results$par[2] * (70+i), scale = fit$results$par[3], shape = fit$results$par[4] + fit$results$par[5] * (70+i))
+    
+  }
+  rt <- mean(return_level)
+  rtl <- quantile(return_level, probs = 0.025)
+  rtu <- quantile(return_level, probs = 0.975)
+  
+  rlci <- rbind(rlci, data.frame(return_level = rt, Lower_CI = rtl, Upper_CI = rtu))
+}
+```
+
+
 Either find a predict function with a package or do it by hand, if by hand need to compute the mu for 2010-2022 and : 1-pchisq(-2*(mod2$nllh-mod1$nllh),1); k = 13. Return level should be between 139 and 157. 
 
 
