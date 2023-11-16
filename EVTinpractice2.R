@@ -22,7 +22,7 @@ read.ehyd <- function(ehyd_url) {
   # return time series object of class xts
   return(xts(infile$value, order.by = infile$time))
 }
-
+??read.ehyd
 ehyd_url <- "http://ehyd.gv.at/eHYD/MessstellenExtraData/nlv?id=105700&file=2"
 precipitation_xts <- read.ehyd(ehyd_url)
 precipitation_xts <- precipitation_xts[-14611,]
@@ -31,6 +31,7 @@ precipitation_xts <- precipitation_xts[-14611,]
 plot(precipitation_xts) # xts allow us to plot time-series 
 hist(precipitation_xts, breaks = 30) # there are a lot of data points close to 0. It looks long tail. 
 # we can check with mean() and max() and quantile(precipitation, 0.95) this suggests we need extreme analysis 
+
 # seems to be right-skewed 
 ########## FIRST THING: what is the threshold? mrlplot is  ########## 
 # MRL plot: 
@@ -91,7 +92,7 @@ confint(profile(pot_decl))
 confint(profile(rl_mle_evd))
 
 plot(pot_decl)
-
+fpot
 
 # We need to use this declustering function for FEVD. decluster and obtain plot, according to years for example 
 years <- c()

@@ -18,7 +18,8 @@ packages <- c(
   "scales", # practical 2 
   "extRemes",# practical 2 
   "knitr",
-  "xfun")
+  "readr",
+  "lubridate")
 
 # Check if each package is available, and install it if not
 for (package in packages) {
