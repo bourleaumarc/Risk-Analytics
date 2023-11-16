@@ -1,0 +1,89 @@
+---
+title: "TP2Part2"
+output: html_document
+date: "2023-11-16"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+
+load("~/Desktop/GitHub/Risk-Analytics/data/niveau.Rdata")
+```
+
+a)
+```{r}
+niveau$Zeitstempel <- as.Date(niveau$Zeitstempel)
+niveau$Zeitpunkt_des_Auftretens <- as.Date(niveau$Zeitpunkt_des_Auftretens)
+
+# Plot time series
+plot(niveau$Zeitstempel, niveau$Wert, type = 'l', xlab = 'Date', ylab = 'Water Level (m)',
+     main = 'Time Series Plot of Water Levels')
+
+# Assuming df is your data frame
+high_water_levels <- niveau[niveau$Wert > 328, ]
+TOHL <- high_water_levels$Zeitstempel
+TOHL
+
+```
+
+b)
+```{r}
+ Display a histogram of water levels
+hist(niveau$Wert, breaks = 23, col = 'skyblue', border = 'black', 
+     main = 'Histogram of Water Levels', xlab = 'Water Level (m)', ylab = 'Frequency')
+
+```
+```{r}
+max(niveau$Wert)
+mean(niveau$Wert)
+
+mrlplot(niveau$Wert) 
+threshrange.plot(niveau$Wert, r=c(325,330), nint = 20)
+```
+
+
+c)
+```{r}
+library(extRemes)
+
+# Choose a threshold (adjust as needed)
+quantile(niveau$Wert, 0.95)
+threshold1 = 327
+
+exceedances <- niveau$Wert[niveau$Wert > threshold1]
+
+# Fit Generalized Pareto Distribution to exceedances
+
+fitMLE <- fevd(as.vector(exceedances), method = "MLE",  type="GP", threshold = threshold1)
+plot(fitMLE)
+
+fitMLE
+```
+
+d)
+```{r}
+#Clustering of extremes
+library(extRemes)
+
+extremalindex(niveau$Wert, threshold = threshold1)
+
+```
+We have to decluster now!!
+
+
+e)
+```{r}
+library(extRemes)
+
+# return levels for 50 and 100 years
+return_50 <- qevd(1-1/50, scale = 0.4, shape = -0.07)
+return_100 <- qevd(1 - 1/100, scale = 0.4, shape = -0.07)
+cat("50-year return level:", round(return_50, 2), "meters\n")
+cat("100-year return level:", round(return_100, 2), "meters\n")
+```
+This value suggests that, on average, the water level is expected to exceed 1.37 meters once every 50 years.
+This value indicates that, on average, the water level is expected to exceed 1.57 meters once every 100 years.
