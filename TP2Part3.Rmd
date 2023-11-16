@@ -97,10 +97,15 @@ plot(winter_night_min$date, winter_night_min$night.min, type = "l", xlab = "Date
 hist(winter_night_min$night.min, breaks = 30, xlab = "Date", ylab = "Night Min Temperature", main = "Winter Night Min Temperatures frequency")
 min(winter_night_min$night.min); mean(winter_night_min$night.min); max(winter_night_min$night.min)
 quantile(winter_night_min$night.min, 0,95)
+
 mrlplot(winter_night_min$night.min, main="Mean residual")
 threshrange.plot(winter_night_min$night.min, r= c(-5,15), nint =20)
 
+mean(winter_night_min$night.min)
+
+max(summer_night_max$night.max)
+quantile(summer_night_max$night.max, 0,95)
+mean(summer_night_max$night.max)
+
 ```
-
-
 
