@@ -18,7 +18,7 @@ library(lubridate)
 
 # Read in the data
 night_max <- read_csv(here::here("data/nightmax.csv"))  # Replace "nightmax.csv" with the actual file name
-night_min <- read_csv("nightmin.csv")
+night_min <- read_csv(here::here("data/nightmin.csv"))
 
 # Remove rows with missing values
 night_max <- na.omit(night_max)
