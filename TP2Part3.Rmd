@@ -129,21 +129,3 @@ plot(decl2) #in grey the points are not retained, in black points retained.
 
 
 
-
-```{r}
-install.packages("tseries")
-library(tseries)
-
-# Perform runs test for summer night maximum temperatures
-runs_test_result_summer_max <- runs.test(summer_night_max$night.max)
-cat("Runs Test Result for Summer Night Max Temperatures:\n")
-print(runs_test_result_summer_max)
-
-# Perform runs test for winter night minimum temperatures
-runs_test_result_winter_min <- runs.test(winter_night_min$night.min)
-cat("\nRuns Test Result for Winter Night Min Temperatures:\n")
-print(runs_test_result_winter_min)
-
-```
-
-
