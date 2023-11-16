@@ -9,15 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
-List of all the packages used 
-```{r}
-library(QRM)
-library(tseries)
-library(nortest)
-library(forecast)
-library(plotly)
-```
 
+```{r, echo = FALSE, message = FALSE, warning=FALSE}
+source(here::here("script/setup.R"))
+```
 
 # Part 1: financial returns and normality 
 ## (a) Read in the data and assess the stationarity of the raw stock indices.  
@@ -168,7 +163,6 @@ As we can see from the QQ-plots, data points are all heavily deviating from the 
 ```{r}
 #QUESTION E)
 
-library(nortest)
 
 # Perform Anderson-Darling test for normality
 ad_test_sp500 <- ad.test(log_returns_sp500)
@@ -190,8 +184,6 @@ In each case, the p-value is extremely close to zero (p-value < 2.2e-16), which 
 
 ```{r}
 # QUESTION F)
-library(MASS)
-
 # Remove missing values from log return datasets
 log_returns_sp500 <- log_returns_sp500[!is.na(log_returns_sp500)]
 log_returns_cac40 <- log_returns_cac40[!is.na(log_returns_cac40)]

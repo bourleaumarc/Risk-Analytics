@@ -9,14 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
-library(ismev)
-library(VGAM)
-library(tidyverse)
-library(plotly)
-library(plotrix) 
-library(scales)
-library(extRemes)
+```{r, echo = FALSE, message = FALSE, warning=FALSE}
+source(here::here("script/setup.R"))
 ```
 # Part 1: Venice 
 (A)  Read in the data. Extract and represent the yearly max values from 1940 to 2009. What do you
