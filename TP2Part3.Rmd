@@ -61,6 +61,7 @@ quantile(summer_night_max$night.max, 0,95)
 mean(summer_night_max$night.max)
 
 ```
+
 ```{r}
 
 mrlplot(winter_night_min$night.min, main="Mean residual")
@@ -88,6 +89,7 @@ plot(plot_mle)
 plot_mle2 <- fevd(as.vector(winter_night_min$night.min), method = "MLE",  type="GP", threshold = th2)
 plot(plot_mle)
 ```
+
 ```{r}
 rl_mle1 <- return.level(plot_mle1, conf=0.05, return.period = c(2,5,10,20,50), do.ci=T)
 rl_mle1
@@ -101,6 +103,7 @@ rl_mle1
 plot_mle2 <- fevd(as.vector(winter_night_min$night.min), method = "MLE",  type="GP", threshold = th2)
 plot(plot_mle2)
 ```
+
 ```{r}
 return level plot  sgmentt
 ```
