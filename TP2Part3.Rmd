@@ -1,0 +1,132 @@
+---
+title: "Practical2.part3"
+output: html_document
+date: "2023-11-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+a)
+```{r}
+
+# Load necessary libraries
+library(readr)
+library(dplyr)
+library(lubridate)
+
+# Read in the data
+night_max <- read_csv(here::here("data/nightmax.csv"))  # Replace "nightmax.csv" with the actual file name
+night_min <- read_csv("nightmin.csv")
+
+# Remove rows with missing values
+night_max <- na.omit(night_max)
+night_min <- na.omit(night_min)
+
+# Convert 'Date' to a Date object
+night_max$date <- as.Date(night_max$date)
+night_min$date <- as.Date(night_min$date)
+
+# Subset the data for summer months (June to September)
+summer_night_max <- night_max[format(night_max$date,"%m") %in% c("06", "07", "08", "09"), ] 
+
+# Subset the winter months
+winter_night_min <- night_min[format(night_min$date, "%m") %in% c("11", "12", "01", "02"), ]
+
+
+
+# Plot the original data
+plot(summer_night_max$date, summer_night_max$night.max, type = "l", xlab = "Date", ylab = "Night Max Temperature", main = "Summer Night Max Temperatures")
+
+plot(winter_night_min$date, winter_night_min$night.min, type = "l", xlab = "Date", ylab = "Night Min Temperature", main = "Winter Night Min Temperatures")
+
+```
+
+
+```{r}
+# Plot the original data
+hist(summer_night_max$night.max, breaks = 30, xlab = "Date", ylab = "Night Max Temperature", main = "Summer Night Max Temperatures frequency")
+
+hist(winter_night_min$night.min, breaks = 30, xlab = "Date", ylab = "Night Min Temperature", main = "Winter Night Min Temperatures frequency")
+```
+
+```{r}
+max(winter_night_min$night.min)
+quantile(winter_night_min$night.min, 0,95)
+mean(winter_night_min$night.min)
+
+max(summer_night_max$night.max)
+quantile(summer_night_max$night.max, 0,95)
+mean(summer_night_max$night.max)
+
+```
+```{r}
+
+mrlplot(winter_night_min$night.min, main="Mean residual")
+threshrange.plot(winter_night_min$night.min, r= c(-5,15), nint =20)
+
+mrlplot(summer_night_max$night.max, main="Mean residual")
+threshrange.plot(summer_night_max$night.max, r= c(10,30), nint = 20)
+```
+
+```{r}
+th1=30
+plot(as.vector(summer_night_max$night.max), type = "l")
+abline(h=th, col=2)
+
+th2=5
+plot(as.vector(winter_night_min$night.min), type = "l")
+abline(h=th, col=2)
+```
+
+```{r}
+plot_mle1 <- fevd(as.vector(summer_night_max$night.max), method = "MLE",  type="GP", threshold = th1)
+plot(plot_mle)
+
+
+plot_mle2 <- fevd(as.vector(winter_night_min$night.min), method = "MLE",  type="GP", threshold = th2)
+plot(plot_mle)
+```
+```{r}
+rl_mle1 <- return.level(plot_mle1, conf=0.05, return.period = c(2,5,10,20,50), do.ci=T)
+rl_mle1
+
+plot_mle1 <- fevd(as.vector(summer_night_max$night.max), method = "MLE",  type="GP", threshold = th1)
+plot(plot_mle1)
+
+rl_mle2 <- return.level(plot_mle2, conf=0.05, return.period = c(2,5,10,20,50), do.ci=T)
+rl_mle1
+
+plot_mle2 <- fevd(as.vector(winter_night_min$night.min), method = "MLE",  type="GP", threshold = th2)
+plot(plot_mle2)
+```
+```{r}
+return level plot  sgmentt
+```
+
+Ferro-segers : check cluster of extremes
+```{r}
+library(evd)
+exi(summer_night_max$night.max, u=th1)
+
+exi(winter_night_min$night.min, u=th2)
+
+#we do 1/by the formula = if its higher than 1 = we want to decluster the data = approximate mean cluster size (=2 means 2 observations).
+```
+
+Declustering = we have to compare it with rl_mle EVD
+```{r}
+#for each obs. a function that carry data = vector of the same length as the data
+decl1 <- decluster(as.vector(summer_night_max), threshold = th1, groups= functioncreated, na.action=na.omit)
+decl1
+plot(decl1)
+
+decl2 <- decluster(as.vector(winter_night_min), threshold = th2, groups= functioncreated, na.action=na.omit)
+decl2
+plot(decl2) #in grey the points are not retained, in black points retained.
+```
+
+
+
+
