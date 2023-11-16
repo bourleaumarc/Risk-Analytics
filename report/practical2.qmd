@@ -129,6 +129,20 @@ gev_time_varying_location_shape <- fevd(venice_max$max_sea_level, venice_max, ty
 gev_time_varying_scale_shape_location <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", shape.fun = ~ yy, location.fun =  ~ yy, scale.fun = ~ yy ) # AIC: 586 
 lrt_result <- lr.test(gev_time_varying_location_shape, gev_time_varying_scale_shape_location) # can't reject the null hypothesis so we decide to choose the gev_time_varying_location_shape 
 
+
+test <- cbind(venice_max, yy)
+mod.test <- fevd(test$max_sea_level, test, type = "GEV", time.units = "year", shape.fun = ~ yy, location.fun =  ~ yy)
+
+ret <- c()
+for(i in 1:3){
+  ret[i] <- qgev(1-1/13, location=mod.test$)
+}
+
+
+for(i in 1:3){
+  
+}
+
 ```
 After comparing the AIC of the models above, it aprears that the best models are the "gev_time_varying_location_shape" and "gev_time_varying_scale_shape_location", for which we did the LRT test. it shows us that the best model is the less complex one: the "gev_time_varying_location_shape".
 
@@ -157,27 +171,32 @@ print(return_levels_df)
 
 ```{r}
 rlci<- data.frame(return_level = numeric(), Lower_CI = numeric(), Upper_CI = numeric())
-B <- 5
-return_level <- numeric(B)
+B <- 500
+rt1 <- matrix(0, nrow=B, ncol=13)
 
 
-for (i in 1:13){
-  
-  for(j in 1:B){
-      
+for(j in 1:B){
+  for (i in 1:13){
+
     data <- suppressWarnings(rgev(70, loc = gev_time_varying_location_shape$results$par[1] + gev_time_varying_location_shape$results$par[2] * (70+i), scale = gev_time_varying_location_shape$results$par[3], shape = gev_time_varying_location_shape$results$par[4] + gev_time_varying_location_shape$results$par[5] * (70+i)))
     
-    fit <- suppressWarnings(fevd(data, venice_max, type = "GEV", time.units = "year", shape.fun = ~ yy, location.fun =  ~ yy))
-    
-    return_level[j] <- qgev(1 - 1/13, location = fit$results$par[1] + fit$results$par[2] * (70+i), scale = fit$results$par[3], shape = fit$results$par[4] + fit$results$par[5] * (70+i))
-    
-  }
-  rt <- mean(return_level)
-  rtl <- quantile(return_level, probs = 0.025)
-  rtu <- quantile(return_level, probs = 0.975)
+  fit <- gev.fit(data)
+  
+  rt1[j,i] <- qgev(1-1/13, location = fit$mle[1], scale = fit$mle[2], shape = fit$mle[3])
+  
+  }}
+
+
+rt <- apply(rt1,2,function(x){quantile(x,0,5)})
+rtl <- apply(rt1,2,function(x){quantile(x,0,025)})
+rtu <- apply(rt1,2,function(x){quantile(x,0,975)}) 
   
   rlci <- rbind(rlci, data.frame(return_level = rt, Lower_CI = rtl, Upper_CI = rtu))
-}
+plot(data)
+plot(1:13, rt)
+lines(1:13, rtl, lty = 2, col = 2)
+lines(1:13, rtu, lty = 1)
+
 ```
 
 
