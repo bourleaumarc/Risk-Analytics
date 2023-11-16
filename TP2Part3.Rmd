@@ -8,7 +8,7 @@ date: "2023-11-02"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
+a)
 ```{r}
 
 # Load necessary libraries
@@ -20,90 +20,43 @@ library(lubridate)
 night_max <- read_csv("nightmax.csv")  # Replace "nightmax.csv" with the actual file name
 night_min <- read_csv("nightmin.csv")
 
-# Subset the data for summer months (June to September)
-summer_night_max <- night_max %>%
-  filter(month(date) >= 6 & month(date) <= 9)
-summer_night_min <- night_min %>%
-  filter(month(date) >= 6 & month(date) <= 9)
-
-```
-
-
-```{r}
-# Load necessary libraries
-library(extRemes)
-
 # Remove rows with missing values
-summer_night_max <- na.omit(summer_night_max)
+night_max <- na.omit(night_max)
+night_min <- na.omit(night_min)
 
-# Now, you can proceed with your analysis on the filtered data.
+# Convert 'Date' to a Date object
+night_max$date <- as.Date(night_max$date)
+night_min$date <- as.Date(night_min$date)
 
+# Subset the data for summer months (June to September)
+summer_night_max <- night_max[format(night_max$date,"%m") %in% c("06", "07", "08", "09"), ] 
 
-# Estimate threshold for declustering
-threshold <- fevd(summer_night_max$night.max, threshold = "mean", data = summer_night_max)
-
-# Decluster the data
-declustered_data <- evd(threshold)
-
-# Calculate the time between exceedances
-time_between_events <- diff(declustered_data$time)
-
-# You can then analyze the distribution of time between events to assess clustering.
+# Subset the winter months
+winter_night_min <- night_min[format(night_min$date, "%m") %in% c("11", "12", "01", "02"), ]
 
 
-```
 
+# Plot the original data
+plot(summer_night_max$date, summer_night_max$night.max, type = "l", xlab = "Date", ylab = "Night Max Temperature", main = "Summer Night Max Temperatures")
 
-```{r}
-# Cluster test for winter maximum temperatures
-cluster_test_winter_max <- tscluster(winter_night_max$Temperature, threshold = "mean")
-print(cluster_test_winter_max)
+plot(winter_night_min$date, winter_night_min$night.min, type = "l", xlab = "Date", ylab = "Night Min Temperature", main = "Winter Night Min Temperatures")
 
 ```
 
 ```{r}
-# Cluster test for summer minimum temperatures
-cluster_test_summer_min <- tscluster(summer_night_min$Temperature, threshold = "mean")
-print(cluster_test_summer_min)
+install.packages("tseries")
+library(tseries)
+
+# Perform runs test for summer night maximum temperatures
+runs_test_result_summer_max <- runs.test(summer_night_max$night.max)
+cat("Runs Test Result for Summer Night Max Temperatures:\n")
+print(runs_test_result_summer_max)
+
+# Perform runs test for winter night minimum temperatures
+runs_test_result_winter_min <- runs.test(winter_night_min$night.min)
+cat("\nRuns Test Result for Winter Night Min Temperatures:\n")
+print(runs_test_result_winter_min)
 
 ```
 
-
-```{r}
-# Cluster test for winter minimum temperatures
-cluster_test_winter_min <- tscluster(winter_night_min$Temperature, threshold = "mean")
-print(cluster_test_winter_min)
-
-```
-
-
-```{r}
-# Load necessary library for declustering
-library(extRemes)
-
-# Estimate threshold for declustering
-threshold <- fevd(summer_night_max$Temperature, threshold = "mean", data = summer_night_max)
-
-# Decluster the data
-declustered_data <- evd(threshold)
-
-# Plot the declustered data
-plot(declustered_data)
-
-```
-
-
-```{r}
-# Fit GPD to raw data
-gpd_raw <- gpd(summer_night_max$Temperature, threshold = threshold, data = summer_night_max)
-
-# Fit GPD to declustered data
-gpd_declustered <- gpd(declustered_data, threshold = threshold, data = summer_night_max)
-
-# Assess the quality of the fit for both raw and declustered data
-par(mfrow = c(2, 2))
-plot(gpd_raw)
-plot(gpd_declustered)
-
-```
 
