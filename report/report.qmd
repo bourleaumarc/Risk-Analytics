@@ -16,7 +16,7 @@ output:
     toc_collapsed: true # toc subheadings closed by default
     toc_depth: 4 # all level 1, 2, 3 headers will be included in the TOC
     theme: lumen  # other themes can be found here https://bootswatch.com/3/
-    code_folding: hide # include R code but have it hidden by default
+    code_folding: true # include R code but have it hidden by default
 ---
 
 ```{r child = c('practical1.qmd', 'practical2.qmd'), warning=FALSE}

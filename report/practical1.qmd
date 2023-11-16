@@ -396,7 +396,6 @@ Arima(log_returns_nasdaq, order = c(7,0,7))
 Arima(log_returns_nikkei, order = c(1,0,1))
 
 
-
 ```
 
 
@@ -416,8 +415,8 @@ Assess the residuals:
 ```{r}
 # Example for assessing residuals of the S&P 500 ARIMA model
 residuals_sp500 <- residuals(model_sp500)
-residuals_cac40 <- residuals(model_cac40)
-residuals_nikkei <- residuals(model_nikkei)
+#residuals_cac40 <- residuals(model_cac40)
+#residuals_nikkei <- residuals(model_nikkei)
 
 # Ljung-Box test for autocorrelation in residuals
 Box.test(residuals_sp500, lag = 30 , type = "Ljung") # almost significant means may indicate that the ARIMA model can be improved ()

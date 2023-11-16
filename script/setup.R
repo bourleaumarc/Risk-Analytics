@@ -16,10 +16,21 @@ packages <- c(
   "tidyverse", # practical 2 
   "plotrix", # practical 2 
   "scales", # practical 2 
-  "extRemes") # practical 2 
+  "extRemes",# practical 2 
+  "knitr",
+  "xfun")
 
-purrr::walk(packages, library, character.only = TRUE)
+# Check if each package is available, and install it if not
+for (package in packages) {
+  if (!requireNamespace(package, quietly = TRUE)) {
+    install.packages(package)
+  }
+}
 
+# Now load each package
+lapply(packages, function(pkg) {
+  library(pkg, character.only = TRUE)
+})
 ######################################################
 ## The following sets a few option for nice reports ##
 ######################################################
