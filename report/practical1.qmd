@@ -345,7 +345,6 @@ pacf(log_returns_nasdaq)
 
 par(mar = c(5, 4, 3, 2))
 pacf(log_returns_nikkei)
-
 ```
 
 (c) Propose ARIMA for the negative log returns.
