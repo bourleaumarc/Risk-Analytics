@@ -1,7 +1,7 @@
 ---
-title: "TA1"
-author: "Quentin"
-date: "2023-10-12"
+title: "Deliverable 1"
+author: "Group"
+date: "2023-11-16"
 output: html_document
 ---
 
@@ -9,15 +9,17 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
-
 ```{r, echo = FALSE, message = FALSE, warning=FALSE}
 source(here::here("script/setup.R"))
 ```
 
-# Part 1: financial returns and normality 
-## (a) Read in the data and assess the stationarity of the raw stock indices.  
+# Part 1: financial returns and normality
+
+## (a) Read in the data and assess the stationarity of the raw stock indices.
+
 We are going to use two methods. The first one, is to visualize the stock indices over time to get a sense of whether they appear stationary or not; using `plot()`.
-```{r}
+
+```{r question a }
 # Create interactive plots for each index
 plot_sp500 <- plot_ly(x = sp500.df$DATE, y = sp500.df$SP500, type = "scatter", mode = "lines", name = "SP500") %>%
   layout(title = "SP500")
@@ -40,11 +42,12 @@ combined_plot <- layout(combined_plot, title = "Comparison of Stock Indices")
 combined_plot
 
 ```
+
 It appears that none of the stock indices are stationary based on the plots generated. These plots clearly show the presence of trends, which are a strong indicator of non-stationarity data. For instance, if we take the NASDAQ index as an example, it exhibits a noticeable upward trend between 1999 and the beginning of 2000.
 
-Another common approach is to use the Augmented-Dickey-Fuller (ADF) test. If we can reject the null hypothesis (p-value < 0.05), then we can consider the time-series to be stationary. The null hypothesis of this test is that the time series is non-stationary. If the p-value is less than your significance level, you can reject the null hypothesis and consider the series stationary.
+Another common approach is to use the Augmented-Dickey-Fuller (ADF) test. If we can reject the null hypothesis (p-value \< 0.05), then we can consider the time-series to be stationary. The null hypothesis of this test is that the time series is non-stationary. If the p-value is less than your significance level, you can reject the null hypothesis and consider the series stationary.
 
-```{r}
+```{r question a: adf test}
 # ADF - Test 
 adf_test_sp500 <- adf.test(sp500$SP500) ; adf_test_sp500
 adf_test_nasdaq <- adf.test(nasdaq$NASDAQ) ; adf_test_nasdaq
@@ -56,7 +59,7 @@ We can't reject any of the null hypothesis, implying that we do not have enough 
 
 ## (b) Create a function to transform the daily stock indices into their daily negative log returns counterparts. Plot the latter series and assess their stationarity. To compare the series, also plot the negative log returns on a common scale to all indices.
 
-```{r}
+```{r question b}
 # Define a function to calculate negative log returns
 calculate_log_returns <- function(stocks) {
   log_returns <- -diff(log(stocks))
@@ -95,20 +98,15 @@ combined_plot2 <- layout(combined_plot2, title = "Comparison of negative log ret
 combined_plot2
 
 ```
-Looking at the comparison of negative logarithm return of the stock indices, we discern the following: 
-- mean is not constant: not centered around 0, implying that there is a long-term trend in the indexes.
-- variance is not constant: there are clear upward/downward trends. SP500 has very high spikes, such as the one in 1997-10-27.
 
-Therefore, graphically, the indexes seem to be non-stationary. Moreover, we should check test ADF. 
+Looking at the comparison of negative logarithm return of the stock indices, we discern the following: - mean is not constant: not centered around 0, implying that there is a long-term trend in the indexes. - variance is not constant: there are clear upward/downward trends. SP500 has very high spikes, such as the one in 1997-10-27.
 
+Therefore, graphically, the indexes seem to be non-stationary. Moreover, we should check test ADF.
 
-```{r}
-#QUESTION C)
-
+## (c) Draw histograms of the negative log returns and compare them to the Normal distribution. What do you observe?
+```{r question c }
 # Set the number of histogram bins
 num_bins <- 30
-
-
 # Create a common scale for the histograms
 par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
 
@@ -130,19 +128,15 @@ par(mfrow = c(1, 1))
 
 
 ```
+
 By comparing it to a normal distribution, we can notice several pieces of information.
 
-SP500: Lots of values close to 0, which corresponds to the observations we've made on the negative log returns.
-CAC40: A bit heavy-tailed, but close to a normal distribution.
-Nasdaq: Right-skewed, which might indicate the presence of more extreme values on the right side. The tails also look heavier than all other indices.
-Nikkei: Seem to be the closest to a Normal Distribution.
+SP500: Lots of values close to 0, which corresponds to the observations we've made on the negative log returns. CAC40: A bit heavy-tailed, but close to a normal distribution. Nasdaq: Right-skewed, which might indicate the presence of more extreme values on the right side. The tails also look heavier than all other indices. Nikkei: Seem to be the closest to a Normal Distribution.
 
 To confirm those observations, we will need analysis tools which we will use further in this document.
+## (d) Check the normality assumption of the negative log returns using QQ-plots. What is your conclusion?
 
-
-```{r}
-#QUESTION D)
-
+```{r question d }
 # Create QQ-plots for log returns
 
 par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
@@ -156,14 +150,11 @@ qqline(log_returns_nasdaq)
 qqnorm(log_returns_nikkei, main = "QQ-Plot - NIKKEI Log Returns")
 qqline(log_returns_nikkei)
 ```
+
 As we can see from the QQ-plots, data points are all heavily deviating from the line, which indicates that the indices cannot be estimated by a normal distribution, thus underestimating the extreme values. In the Nasdaq plot, for example, we can see the most extreme value from negative log returns on the left side. One thing to note is that these plot don't have the same scale. This hsows once again the high variation from Nasdaq, but from all other indices as well.
 
-
-
-```{r}
-#QUESTION E)
-
-
+## (e) Formally test the normality assumption of the negative log returns using an Anderson-Darling testing procedure. Do you reject the Normal hypothesis?
+```{r question e}
 # Perform Anderson-Darling test for normality
 ad_test_sp500 <- ad.test(log_returns_sp500)
 ad_test_cac40 <- ad.test(log_returns_cac40)
@@ -178,12 +169,10 @@ print(ad_test_nikkei)
 
 ```
 
-In each case, the p-value is extremely close to zero (p-value < 2.2e-16), which indicates strong evidence against the null hypothesis that the data follows a normal distribution.The test statistics are relatively large, further indicating that the data significantly deviates from a normal distribution.Based on the p-values and test statistics, we can conclude that the negative log returns for each of the stock indices (SP500, CAC40, Nasdaq, NIKKEI) do not follow a normal distribution. Instead, they exhibit departures from normality.
+In each case, the p-value is extremely close to zero (p-value \< 2.2e-16), which indicates strong evidence against the null hypothesis that the data follows a normal distribution.The test statistics are relatively large, further indicating that the data significantly deviates from a normal distribution.Based on the p-values and test statistics, we can conclude that the negative log returns for each of the stock indices (SP500, CAC40, Nasdaq, NIKKEI) do not follow a normal distribution. Instead, they exhibit departures from normality.
 
-
-
-```{r}
-# QUESTION F)
+## (f) Use the fitdistr() function from the MASS package in order to obtain the (maximum-likelihood estimated) parameters of distributions you could imagine for the negative log returns. Try to fit at least two different distributions on the data and, using an information criteria (such as the AIC), decide which distributional framework fits best for each of the series.
+```{r question f}
 # Remove missing values from log return datasets
 log_returns_sp500 <- log_returns_sp500[!is.na(log_returns_sp500)]
 log_returns_cac40 <- log_returns_cac40[!is.na(log_returns_cac40)]
@@ -237,14 +226,13 @@ barplot(
   args.legend = list(x = "topright", bty = "n")
 )
 ```
+
 For the 4 indices, even though the difference is minimal compared to the scale, the Student distribution is systematically better than the Normal distribution (the AIC value is lower).
 
 As a result, we will continue analyzing the indices with the Student distribution.
+## (g) If this has not been done in (f), fit a t-distribution to the negative log returns using `fitdistr()`.Using a QQ-plot for each of the series, decide whether the fit is better than with a Normal distribution, based on your answer in (d).
 
-
-```{r}
-#QUESTION G)
-
+```{r question g}
 par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
 
 # Create QQ-plots for t-distributions
@@ -261,16 +249,12 @@ qqnorm(rt(length(log_returns_nikkei), df = fit_nikkei_t$estimate["df"]), main = 
 qqline(rt(length(log_returns_nikkei), df = fit_nikkei_t$estimate["df"]))
 
 ```
-
-
-
-
-```{r}
-#Part 2
+# Part 2: Financial time series, volatility and the random walk hypothesis 
+# (a) Plot the ACF of all the series in Part 1 (i.e. the raw series as well as the negative log returns).What do you observe?
+```{r question 2a}
+##############################################################  RAW SERIES ############################################################### 
 par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
-par(oma = c(0, 0, 1, 0))
-
-#QUESTION A)
+par(oma = c(0, 0, 3, 0)) # Adjust the outer margins to make space for the title
 
 # Plot ACF for the S&P 500 index with adjusted margins
 par(mar = c(5, 4, 3, 2))
@@ -287,13 +271,14 @@ acf(nasdaq, main = "ACF of NASDAQ Index")
 # Plot ACF for the Nikkei index with adjusted margins
 par(mar = c(5, 4, 3, 2))
 acf(nikkei, main = "ACF of Nikkei Index")
-```
 
-```{r}
-par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
-par(oma = c(0, 0, 1, 0))
+# Add the main title
+mtext("ACF of raw series", outer = TRUE, cex = 1.5, line = 1)
 
-#QUESTION A)
+##############################################################  NEGATIVE LOG RETURNS ################################################################ 
+
+# Setting up the 2x2 plot area with adjusted outer margins for the title
+par(mfrow = c(2, 2), oma = c(0, 0, 2, 0))
 
 # Plot ACF for the S&P 500 index with adjusted margins
 par(mar = c(5, 4, 3, 2))
@@ -310,45 +295,41 @@ acf(log_returns_nasdaq, main = "ACF of NASDAQ Index")
 # Plot ACF for the Nikkei index with adjusted margins
 par(mar = c(5, 4, 3, 2))
 acf(log_returns_nikkei, main = "ACF of Nikkei Index")
+
+# Add the central title
+mtext("ACF of Negative Log Returns", outer = TRUE, cex = 1.5, line = 0)
 ```
 
 By plotting the raw series, we cannot say anything since all values are auto correlated with one another.
 
 Plotting the negative log returns, none of the values seem to be closely auto correlated with the initial measure, though there are some outliers.
 
-
-```{r}
-#QUESTION B)
-
-#Doing Box-Ljung procedures for all indices
+## (b) Use a Ljung-Box procedure to formally test for (temporal) serial dependence in the series. What is your conclusion?
+```{r question 2b}
+##############################################################  RAW SERIES ############################################################### 
 Box.test(sp500, type = "Ljung-Box")
 Box.test(cac40, type = "Ljung-Box")
 Box.test(nasdaq, type = "Ljung-Box")
 Box.test(nikkei, type = "Ljung-Box")
-
-```
-The null hypothesis of the Ljung-Box test is that the residuals are independent (i.e., no autocorrelation). From these results, we can see that all 4 indices show a very small p-value (<2.2e-16) and that they are not independent. 
-
-We therefore reject the null hypothesis.
-
-```{r}
-
-#Doing Box-Ljung procedures for all indices
+##############################################################  NEGATIVE LOG RETURNS ################################################################ 
 Box.test(log_returns_sp500, type = "Ljung-Box")
 Box.test(log_returns_cac40, type = "Ljung-Box")
 Box.test(log_returns_nasdaq, type = "Ljung-Box")
 Box.test(log_returns_nikkei, type = "Ljung-Box")
-
 ```
 
+The null hypothesis of the Ljung-Box test is that the residuals are independent (i.e., no autocorrelation). From these results, we can see that all 4 indices show a very small p-value (\<2.2e-16) and that they are not independent.
+
+We therefore reject the null hypothesis.
 Using the negative log-returns, we have high p-values, meaning that we can't reject the hypothesis that the data points are auto-correlated (i.e independent).
 
-However, it's almost not the case for the Nikkei index, as it's p-value is almost 0.05. Therefore, it's the one that appears to have the less autocorrelation. 
+However, it's almost not the case for the Nikkei index, as it's p-value is almost 0.05. Therefore, it's the one that appears to have the less autocorrelation.
 
-(c) Propose ARIMA models for each of the negative log returns series, based on visualisation tools (e.g. ACF and PACF). Select an ARIMA model using auto.arima() (forecast package) to each of the negative log returns series. Comment on the difference. Assess the residuals of the resulting models.
+## (c) Propose ARIMA models for each of the negative log returns series, based on visualisation tools (e.g. ACF and PACF). Select an ARIMA model using auto.arima() (forecast package) to each of the negative log returns series. Comment on the di erence. Assess the residuals of the resulting models.
 
-In order to select the order of the 
-```{r}
+In order to select the order of the
+
+```{r question 2c}
 par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
 par(oma = c(0, 0, 1, 0))
 
@@ -366,7 +347,9 @@ par(mar = c(5, 4, 3, 2))
 pacf(log_returns_nikkei)
 
 ```
-(c) Propose ARIMA for the negative log returns. 
+
+(c) Propose ARIMA for the negative log returns.
+
 ```{r}
 ## ADF FOR SP500 
 adf.test(log_returns_sp500)
@@ -383,7 +366,8 @@ adf.test(log_returns_nikkei)
 
 
 ```
- d = 0, no need to differentiate as p-value < 0.05 makes sense (to comment)
+
+d = 0, no need to differentiate as p-value \< 0.05 makes sense (to comment)
 
 ```{r}
 ## ARIMA SP500
@@ -398,7 +382,6 @@ Arima(log_returns_nikkei, order = c(1,0,1))
 
 ```
 
-
 ```{r}
 
 model_sp500 <- auto.arima(log_returns_sp500)# better the auto with parameters: ARIMA(2,0,1) non-zero mean 
@@ -412,6 +395,7 @@ auto.arima(log_returns_nikkei)# better the auto with parameters: ARIMA(2,0,1) wi
 ```
 
 Assess the residuals:
+
 ```{r}
 # Example for assessing residuals of the S&P 500 ARIMA model
 residuals_sp500 <- residuals(model_sp500)
@@ -422,18 +406,3 @@ residuals_sp500 <- residuals(model_sp500)
 Box.test(residuals_sp500, lag = 30 , type = "Ljung") # almost significant means may indicate that the ARIMA model can be improved ()
 # 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
