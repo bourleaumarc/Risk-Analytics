@@ -1,0 +1,24 @@
+---
+title: "Risk Analytics"
+subtitle: "Master in Management, HEC Lausanne"
+author: "Quentin Besson^[Quentin Besson: quentin.besson@unil.ch], Charlene Khairallah^[Charlene Khairallah: charlene.khairallah@unil.ch], Selena Milosevic^[Selena Milosevic: selena.milosevic@unil.ch], Marc Bourleau^[Marc Bourleau: marc.bourleau@unil.ch]"
+date: "Lausanne, 18th of December 2023"
+output:
+  bookdown::html_document2:
+    css: "css.css"
+    fig:caption: yes
+    fig.width: 7
+    fig.length: 6
+    number_sections: yes
+    always_allow_html: yes
+    toc: yes # table of contents
+    toc_float: true # toc floating
+    toc_collapsed: true # toc subheadings closed by default
+    toc_depth: 4 # all level 1, 2, 3 headers will be included in the TOC
+    theme: lumen  # other themes can be found here https://bootswatch.com/3/
+    code_folding: hide # include R code but have it hidden by default
+---
+
+```{r child = c('practical1.qmd', 'practical2.qmd'), warning=FALSE}
+```
+
