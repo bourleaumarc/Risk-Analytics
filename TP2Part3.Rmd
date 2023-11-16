@@ -56,6 +56,9 @@ max(winter_night_min$night.min)
 quantile(winter_night_min$night.min, 0,95)
 mean(winter_night_min$night.min)
 
+max(summer_night_max$night.max)
+quantile(summer_night_max$night.max, 0,95)
+mean(summer_night_max$night.max)
 
 ```
 ```{r}
@@ -78,12 +81,19 @@ abline(h=th, col=2)
 ```
 
 ```{r}
-plot_mle <- fevd(as.vector(summer_night_max$night.max), method = "MLE",  type="GP", threshold = th1)
+plot_mle1 <- fevd(as.vector(summer_night_max$night.max), method = "MLE",  type="GP", threshold = th1)
+plot(plot_mle)
+
+
+plot_mle2 <- fevd(as.vector(winter_night_min$night.min), method = "MLE",  type="GP", threshold = th2)
 plot(plot_mle)
 ```
 ```{r}
-rl_mle <- return.level(plot_mle, conf=0.05, return.period = c(2,5,10,20,50), do.ci=T)
-rl_mle
+rl_mle1 <- return.level(plot_mle, conf=0.05, return.period = c(2,5,10,20,50), do.ci=T)
+rl_mle1
+
+plot_mle2 <- fevd(as.vector(summer_night_max$night.max), method = "MLE",  type="GP", threshold = th2)
+plot(plot_mle2)
 ```
 ```{r}
 
