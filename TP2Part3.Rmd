@@ -107,11 +107,12 @@ return level plot  sgmentt
 
 Ferro-segers : check cluster of extremes
 ```{r}
+library(evd)
 exi(summer_night_max$night.max, u=th1)
 
 exi(winter_night_min$night.min, u=th2)
 
-#we do 1/by the formula = if its higher than 1 = we want to decluster the data
+#we do 1/by the formula = if its higher than 1 = we want to decluster the data = approximate mean cluster size (=2 means 2 observations).
 ```
 
 Declustering = we have to compare it with rl_mle EVD
