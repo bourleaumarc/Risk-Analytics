@@ -3,6 +3,9 @@ title: "Deliverable 1"
 author: "Group"
 date: "2023-11-16"
 output: html_document
+editor: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -17,7 +20,9 @@ source(here::here("script/setup.R"))
 
 ## (a) Read in the data and assess the stationarity of the raw stock indices.
 
-We are going to use two methods. The first one, is to visualize the stock indices over time to get a sense of whether they appear stationary or not; using `plot()`.
+We are going to use two methods. The first one, is to visualize the
+stock indices over time to get a sense of whether they appear stationary
+or not; using `plot()`.
 
 ```{r question a }
 # Create interactive plots for each index
@@ -43,9 +48,18 @@ combined_plot
 
 ```
 
-It appears that none of the stock indices are stationary based on the plots generated. These plots clearly show the presence of trends, which are a strong indicator of non-stationarity data. For instance, if we take the NASDAQ index as an example, it exhibits a noticeable upward trend between 1999 and the beginning of 2000.
+It appears that none of the stock indices are stationary based on the
+plots generated. These plots clearly show the presence of trends, which
+are a strong indicator of non-stationarity data. For instance, if we
+take the NASDAQ index as an example, it exhibits a noticeable upward
+trend between 1999 and the beginning of 2000.
 
-Another common approach is to use the Augmented-Dickey-Fuller (ADF) test. If we can reject the null hypothesis (p-value \< 0.05), then we can consider the time-series to be stationary. The null hypothesis of this test is that the time series is non-stationary. If the p-value is less than your significance level, you can reject the null hypothesis and consider the series stationary.
+Another common approach is to use the Augmented-Dickey-Fuller (ADF)
+test. If we can reject the null hypothesis (p-value \< 0.05), then we
+can consider the time-series to be stationary. The null hypothesis of
+this test is that the time series is non-stationary. If the p-value is
+less than your significance level, you can reject the null hypothesis
+and consider the series stationary.
 
 ```{r question a: adf test}
 # ADF - Test 
@@ -55,7 +69,8 @@ adf_test_cac40 <- adf.test(cac40$CAC40) ; adf_test_cac40
 adf_test_nikkei <- adf.test(nikkei$NIKKEI) ; adf_test_nikkei
 ```
 
-We can't reject any of the null hypothesis, implying that we do not have enough evidence to conclude that the data is stationary.
+We can't reject any of the null hypothesis, implying that we do not have
+enough evidence to conclude that the data is stationary.
 
 ## (b) Create a function to transform the daily stock indices into their daily negative log returns counterparts. Plot the latter series and assess their stationarity. To compare the series, also plot the negative log returns on a common scale to all indices.
 
@@ -66,10 +81,10 @@ calculate_log_returns <- function(stocks) {
   return(log_returns)
 }
 # Calculate negative log returns for each index
-log_returns_sp500 <- calculate_log_returns(sp500)
-log_returns_cac40 <- calculate_log_returns(cac40)
-log_returns_nasdaq <- calculate_log_returns(nasdaq)
-log_returns_nikkei <- calculate_log_returns(nikkei)
+log_returns_sp500 <- calculate_log_returns(sp500) %>% na.omit()
+log_returns_cac40 <- calculate_log_returns(cac40) %>% na.omit()
+log_returns_nasdaq <- calculate_log_returns(nasdaq) %>% na.omit()
+log_returns_nikkei <- calculate_log_returns(nikkei) %>% na.omit()
 # We need to transform the index of rows as a separate variable to include the date into the plots: we create a function
 log_returns_sp500$Dates <- rownames(log_returns_sp500)
 log_returns_sp500.df <- data.frame(log_returns_sp500)
@@ -99,11 +114,19 @@ combined_plot2
 
 ```
 
-Looking at the comparison of negative logarithm return of the stock indices, we discern the following: - mean is not constant: not centered around 0, implying that there is a long-term trend in the indexes. - variance is not constant: there are clear upward/downward trends. SP500 has very high spikes, such as the one in 1997-10-27.
+Looking at the comparison of negative logarithm return of the stock
+indices, we discern the following:
 
-Therefore, graphically, the indexes seem to be non-stationary. Moreover, we should check test ADF.
+-   mean is not constant: not totally centered around 0, implying that
+    there is a long-term trend in the indexes.
+
+-   variance is not constant: there are clear upward/downward trends.
+    SP500 has very high spikes, such as the one in 1997-10-27.
+
+Therefore, graphically, the indexes seem to be non-stationary.
 
 ## (c) Draw histograms of the negative log returns and compare them to the Normal distribution. What do you observe?
+
 ```{r question c }
 # Set the number of histogram bins
 num_bins <- 30
@@ -112,29 +135,40 @@ par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
 
 # Plot histograms and overlay Normal distribution curves
 hist(log_returns_sp500, breaks = num_bins, main = "Histogram - SP500 Log Returns", xlab = "Log Returns", probability = TRUE, xlim=c(0.1,-0.1))
-curve(dnorm(x, mean = mean(log_returns_sp500), sd = sd(log_returns_sp500)), col = "blue", lwd = 2, add = TRUE)
+curve(dnorm(x, mean = mean(log_returns_sp500), sd = sd(log_returns_sp500)), col = "red", lwd = 2, add = TRUE)
 
 hist(log_returns_cac40, breaks = num_bins, main = "Histogram - CAC40 Log Returns", xlab = "Log Returns", probability = TRUE, xlim=c(0.1,-0.1))
-curve(dnorm(x, mean = mean(log_returns_cac40), sd = sd(log_returns_cac40)), col = "blue", lwd = 2, add = TRUE)
+curve(dnorm(x, mean = mean(log_returns_cac40), sd = sd(log_returns_cac40)), col = "red", lwd = 2, add = TRUE)
 
 hist(log_returns_nasdaq, breaks = num_bins, main = "Histogram - Nasdaq Log Returns", xlab = "Log Returns", probability = TRUE, xlim=c(0.1,-0.1))
-curve(dnorm(x, mean = mean(log_returns_nasdaq), sd = sd(log_returns_nasdaq)), col = "blue", lwd = 2, add = TRUE)
+curve(dnorm(x, mean = mean(log_returns_nasdaq), sd = sd(log_returns_nasdaq)), col = "red", lwd = 2, add = TRUE)
 
 hist(log_returns_nikkei, breaks = num_bins, main = "Histogram - NIKKEI Log Returns", xlab = "Log Returns", probability = TRUE, xlim=c(0.1,-0.1))
-curve(dnorm(x, mean = mean(log_returns_nikkei), sd = sd(log_returns_nikkei)), col = "blue", lwd = 2, add = TRUE)
+curve(dnorm(x, mean = mean(log_returns_nikkei), sd = sd(log_returns_nikkei)), col = "red", lwd = 2, add = TRUE)
 
 # Reset the plot layout
 par(mfrow = c(1, 1))
 
 
+
 ```
 
-By comparing it to a normal distribution, we can notice several pieces of information.
+In a perfectly normal distribution, the data would closely follow the
+red curve. The histograms of the stock indices' negative log returns,
+when compared to the overlaid normal distribution, indicate deviations
+from normality, suggesting the presence of skewness. Such deviations
+hold significant implications for the Black-Scholes formula, which
+assumes normally distributed returns and constant volatility. If returns
+exhibit heavy tails, as suggested by the histograms, the Black-Scholes
+model may not accurately capture the risk of extreme price movements,
+thereby potentially mispricing options that rely on these assumptions.
 
-SP500: Lots of values close to 0, which corresponds to the observations we've made on the negative log returns. CAC40: A bit heavy-tailed, but close to a normal distribution. Nasdaq: Right-skewed, which might indicate the presence of more extreme values on the right side. The tails also look heavier than all other indices. Nikkei: Seem to be the closest to a Normal Distribution.
+To validate these observations, further analytical methods will be
+employed later in this document to rigorously assess the distributional
+characteristics of the stock indices' returns.
 
-To confirm those observations, we will need analysis tools which we will use further in this document.
-## (d) Check the normality assumption of the negative log returns using QQ-plots. What is your conclusion?
+\## (d) Check the normality assumption of the negative log returns using
+QQ-plots. What is your conclusion?
 
 ```{r question d }
 # Create QQ-plots for log returns
@@ -151,9 +185,24 @@ qqnorm(log_returns_nikkei, main = "QQ-Plot - NIKKEI Log Returns")
 qqline(log_returns_nikkei)
 ```
 
-As we can see from the QQ-plots, data points are all heavily deviating from the line, which indicates that the indices cannot be estimated by a normal distribution, thus underestimating the extreme values. In the Nasdaq plot, for example, we can see the most extreme value from negative log returns on the left side. One thing to note is that these plot don't have the same scale. This hsows once again the high variation from Nasdaq, but from all other indices as well.
+The QQ-plots for the negative log returns across various stock indices
+exhibit noticeable deviations from the expected diagonal line,
+particularly within the tails, which indicates a departure from normal
+distribution, with a tendency towards more pronounced extreme movements.
+The Nasdaq index, for instance, distinctly shows this trend with an
+increased frequency of significant negative returns. The differing
+scales of the plots also reveal a variable degree of volatility among
+the indices, with the Nasdaq displaying particularly stark fluctuations.
+This evidence challenges the assumption of normally distributed returns
+integral to the Black-Scholes model, suggesting potential inaccuracies
+in option pricing that relies on this assumption.
+
+In conclusion, the observed anomalies in the QQ-plots signal that the
+normality assumption critical to the Black-Scholes framework is
+violated.
 
 ## (e) Formally test the normality assumption of the negative log returns using an Anderson-Darling testing procedure. Do you reject the Normal hypothesis?
+
 ```{r question e}
 # Perform Anderson-Darling test for normality
 ad_test_sp500 <- ad.test(log_returns_sp500)
@@ -169,16 +218,17 @@ print(ad_test_nikkei)
 
 ```
 
-In each case, the p-value is extremely close to zero (p-value \< 2.2e-16), which indicates strong evidence against the null hypothesis that the data follows a normal distribution.The test statistics are relatively large, further indicating that the data significantly deviates from a normal distribution.Based on the p-values and test statistics, we can conclude that the negative log returns for each of the stock indices (SP500, CAC40, Nasdaq, NIKKEI) do not follow a normal distribution. Instead, they exhibit departures from normality.
+Upon conducting the Anderson-Darling test for normality on the negative
+log returns of the stock indices, we encounter p-values that effectively
+round down to zero ((p-value \< 2.2e-16) , providing robust evidence to
+reject the null hypothesis of normality.
 
-## (f) Use the fitdistr() function from the MASS package in order to obtain the (maximum-likelihood estimated) parameters of distributions you could imagine for the negative log returns. Try to fit at least two different distributions on the data and, using an information criteria (such as the AIC), decide which distributional framework fits best for each of the series.
-```{r question f}
-# Remove missing values from log return datasets
-log_returns_sp500 <- log_returns_sp500[!is.na(log_returns_sp500)]
-log_returns_cac40 <- log_returns_cac40[!is.na(log_returns_cac40)]
-log_returns_nasdaq <- log_returns_nasdaq[!is.na(log_returns_nasdaq)]
-log_returns_nikkei <- log_returns_nikkei[!is.na(log_returns_nikkei)]
+In summary, log returns of the indices are not normally distributed,
+violating one of the key assumptions behind the Black-Scholes formula.
 
+## (f) Use the `fitdistr()` function from the `MASS` package in order to obtain the (maximum-likelihood estimated) parameters of distributions you could imagine for the negative log returns. Try to fit at least two different distributions on the data and, using an information criteria (such as the AIC), decide which distributional framework fits best for each of the series.
+
+```{r question f, warning=FALSE}
 # Fit distributions : normal
 fit_sp500 <- fitdistr(log_returns_sp500, "normal")
 fit_cac40 <- fitdistr(log_returns_cac40, "normal")
@@ -213,44 +263,95 @@ aic_data <- data.frame(
 # Print the AIC data frame
 print(aic_data)
 
-# Create a bar plot of AIC values
+# Create a bar plot of AIC values with improved aesthetics
 barplot(
   t(as.matrix(aic_data[, -1])),
   beside = TRUE,
-  col = c("blue", "red"),
+  col = c("#1f77b4", "#2ca02c"), # Changed to more appealing colors
   names.arg = aic_data$Index,
   main = "AIC Comparison of Distributions",
   xlab = "Index",
   ylab = "AIC Value",
+  cex.names = 0.8,    
+  cex.axis = 0.8,    
+  cex.main = 1,      
+  cex.lab = 0.9,      
+  las = 1,            
+  border = NA,        
   legend.text = c("Normal", "T-Distribution"),
-  args.legend = list(x = "topright", bty = "n")
+  args.legend = list(x = "bottomright", bty = "n", cex = 0.8)
 )
+
+# You can also add a grid for better readability
+grid(nx = NA, ny = NULL, col = "gray", lty = "dotted", lwd = par("lwd"))
 ```
 
-For the 4 indices, even though the difference is minimal compared to the scale, the Student distribution is systematically better than the Normal distribution (the AIC value is lower).
+Upon fitting both normal and t-distributions to the data and evaluating
+them with the Akaike Information Criterion (AIC), it is important to
+note that both methods yield similar AIC values. However, the
+t-distribution consistently offers a better fit for all four indices, as
+indicated by its slightly lower AIC values. This suggests that while the
+normal distribution provides a close representation of the data, the
+student's t-distribution is more likely to minimize information loss
+when representing the underlying structure of the data, capturing the
+tails of the distributions more effectively.
 
-As a result, we will continue analyzing the indices with the Student distribution.
-## (g) If this has not been done in (f), fit a t-distribution to the negative log returns using `fitdistr()`.Using a QQ-plot for each of the series, decide whether the fit is better than with a Normal distribution, based on your answer in (d).
+As a result, we will continue analyzing the indices with the Student
+distribution.
+
+\## (g) If this has not been done in (f), fit a t-distribution to the
+negative log returns using `fitdistr()`.Using a QQ-plot for each of the
+series, decide whether the fit is better than with a Normal
+distribution, based on your answer in (d).
 
 ```{r question g}
-par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
 
-# Create QQ-plots for t-distributions
-qqnorm(rt(length(log_returns_sp500), df = fit_sp500_t$estimate["df"]), main = "QQ-Plot - SP500 Log Returns (t-dist)")
-qqline(rt(length(log_returns_sp500), df = fit_sp500_t$estimate["df"]))
+# Set up the plotting area for a 4x2 grid
+par(mfrow = c(4, 2), mar = c(4, 4, 2, 1), oma = c(0, 0, 3, 0))
 
-qqnorm(rt(length(log_returns_cac40), df = fit_cac40_t$estimate["df"]), main = "QQ-Plot - CAC40 Log Returns (t-dist)")
-qqline(rt(length(log_returns_cac40), df = fit_cac40_t$estimate["df"]))
+# Normal distribution QQ plots
+qqnorm(log_returns_sp500, main = "Normal QQ-Plot - SP500")
+qqline(log_returns_sp500)
+qqnorm(log_returns_cac40, main = "Normal QQ-Plot - CAC40")
+qqline(log_returns_cac40)
+qqnorm(log_returns_nasdaq, main = "Normal QQ-Plot - NASDAQ")
+qqline(log_returns_nasdaq)
+qqnorm(log_returns_nikkei, main = "Normal QQ-Plot - NIKKEI")
+qqline(log_returns_nikkei)
 
-qqnorm(rt(length(log_returns_nasdaq), df = fit_nasdaq_t$estimate["df"]), main = "QQ-Plot - Nasdaq Log Returns (t-dist)")
-qqline(rt(length(log_returns_nasdaq), df = fit_nasdaq_t$estimate["df"]))
+# t-distribution QQ plots
+qqplot(qt(ppoints(log_returns_sp500), df=fit_sp500_t$estimate["df"]), log_returns_sp500, 
+       main = "t-dist QQ-Plot - SP500", xlab = "Theoretical Quantiles", ylab = "Sample Quantiles")
+abline(0, 1, col = "red")
+qqplot(qt(ppoints(log_returns_cac40), df=fit_cac40_t$estimate["df"]), log_returns_cac40, 
+       main = "t-dist QQ-Plot - CAC40", xlab = "Theoretical Quantiles", ylab = "Sample Quantiles")
+abline(0, 1, col = "red")
+qqplot(qt(ppoints(log_returns_nasdaq), df=fit_nasdaq_t$estimate["df"]), log_returns_nasdaq, 
+       main = "t-dist QQ-Plot - NASDAQ", xlab = "Theoretical Quantiles", ylab = "Sample Quantiles")
+abline(0, 1, col = "red")
+qqplot(qt(ppoints(log_returns_nikkei), df=fit_nikkei_t$estimate["df"]), log_returns_nikkei, 
+       main = "t-dist QQ-Plot - NIKKEI", xlab = "Theoretical Quantiles", ylab = "Sample Quantiles")
+abline(0, 1, col = "red")
 
-qqnorm(rt(length(log_returns_nikkei), df = fit_nikkei_t$estimate["df"]), main = "QQ-Plot - NIKKEI Log Returns (t-dist)")
-qqline(rt(length(log_returns_nikkei), df = fit_nikkei_t$estimate["df"]))
+# Reset the plotting area
+par(mfrow = c(1, 1))
+
 
 ```
-# Part 2: Financial time series, volatility and the random walk hypothesis 
+
+Upon examining the QQ plots, the data points in the t-distribution QQ
+plots adhere more closely to the reference line, particularly in the
+tails, suggesting that the t-distribution provides a superior fit for
+the negative log returns of the indices compared to the normal
+distribution. This improved alignment, especially in the tails,
+indicates that the t-distribution more accurately captures the behavior
+of extreme market movements, which is a critical aspect of financial
+data analysis.
+
+# Part 2: Financial time series, volatility and the random walk hypothesis
+
 ## (a) Plot the ACF of all the series in Part 1 (i.e. the raw series as well as the negative log returns).What do you observe?
+
 ```{r question 2a}
 ##############################################################  RAW SERIES ############################################################### 
 par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
@@ -300,11 +401,15 @@ acf(log_returns_nikkei, main = "ACF of Nikkei Index")
 mtext("ACF of Negative Log Returns", outer = TRUE, cex = 1.5, line = 0)
 ```
 
-By plotting the raw series, we cannot say anything since all values are auto correlated with one another.
+By plotting the raw series, we cannot say anything since all values are
+auto correlated with one another.
 
-Plotting the negative log returns, none of the values seem to be closely auto correlated with the initial measure, though there are some outliers.
+Plotting the negative log returns, none of the values seem to be closely
+auto correlated with the initial measure, though there are some
+outliers.
 
 ## (b) Use a Ljung-Box procedure to formally test for (temporal) serial dependence in the series. What is your conclusion?
+
 ```{r question 2b}
 ##############################################################  RAW SERIES ############################################################### 
 Box.test(sp500, type = "Ljung-Box")
@@ -318,12 +423,18 @@ Box.test(log_returns_nasdaq, type = "Ljung-Box")
 Box.test(log_returns_nikkei, type = "Ljung-Box")
 ```
 
-The null hypothesis of the Ljung-Box test is that the residuals are independent (i.e., no autocorrelation). From these results, we can see that all 4 indices show a very small p-value (\<2.2e-16) and that they are not independent.
+The null hypothesis of the Ljung-Box test is that the residuals are
+independent (i.e., no autocorrelation). From these results, we can see
+that all 4 indices show a very small p-value (\<2.2e-16) and that they
+are not independent.
 
-We therefore reject the null hypothesis.
-Using the negative log-returns, we have high p-values, meaning that we can't reject the hypothesis that the data points are auto-correlated (i.e independent).
+We therefore reject the null hypothesis. Using the negative log-returns,
+we have high p-values, meaning that we can't reject the hypothesis that
+the data points are auto-correlated (i.e independent).
 
-However, it's almost not the case for the Nikkei index, as it's p-value is almost 0.05. Therefore, it's the one that appears to have the less autocorrelation.
+However, it's almost not the case for the Nikkei index, as it's p-value
+is almost 0.05. Therefore, it's the one that appears to have the less
+autocorrelation.
 
 ## (c) Propose ARIMA models for each of the negative log returns series, based on visualisation tools (e.g. ACF and PACF). Select an ARIMA model using `auto.arima()` (forecast package) to each of the negative log returns series. Comment on the difference. Assess the residuals of the resulting models.
 
@@ -366,7 +477,7 @@ adf.test(log_returns_nikkei)
 
 ```
 
-d = 0, no need to differentiate as p-value \< 0.05. 
+d = 0, no need to differentiate as p-value \< 0.05.
 
 ```{r}
 ############################## CHOOSING OUR OWN ORDER ############################## 
@@ -389,7 +500,10 @@ plot(plot_1$residuals); plot(plot_2$residuals); plot(plot_3$residuals); plot(plo
 # Check for zero mean 
 mean(plot_1$residuals); mean(plot_2$residuals) ; mean(plot_3$residuals) ; mean(plot_4$residuals) # all residual's means are very close from 0 
 ```
-Using `auto.arima` yields better results in terms of AIC. By assessing the residuals, we observe that they might be independent, as their mean is close to 0. 
+
+Using `auto.arima` yields better results in terms of AIC. By assessing
+the residuals, we observe that they might be independent, as their mean
+is close to 0.
 
 ## (d) Assess the residuals of the resulting models from (c), both their raw values and their absolute values, through visual tools (such as the ACF) and formal tests (e.g. Ljung-Box). What do you conclude about the independence assumption?
 
@@ -432,15 +546,24 @@ Box.test(absolute_residuals_nasdaq, type = "Ljung-Box")
 Box.test(absolute_residuals_nikkei, type = "Ljung-Box")
 
 ```
-Ho: data are independently distributed, implying that there is no autocorrelation among the values.
-H1: data exhibit some level of autocorrelation, meaning that past values in the series have a statistically significant influence on future values.
 
-Looking at the Raw and Absolute residuals through ACF and Ljung-Box, we can see that SP500, CAC400 and NASDAQ residuals are autocorrelated. Moreover, NIKKEI's does not exhibit auto-correlation of the residuals for it's raw values, it does for the absolute. Therefore, we reject the assumption that residuals are independent. 
+Ho: data are independently distributed, implying that there is no
+autocorrelation among the values. H1: data exhibit some level of
+autocorrelation, meaning that past values in the series have a
+statistically significant influence on future values.
 
-Therefore, we conclude that the ARIMA models are not a good fit for the data that show heteroscedasticity of the residuals but we hope that the GARCH model with deal with it. 
+Looking at the Raw and Absolute residuals through ACF and Ljung-Box, we
+can see that SP500, CAC400 and NASDAQ residuals are autocorrelated.
+Moreover, NIKKEI's does not exhibit auto-correlation of the residuals
+for it's raw values, it does for the absolute. Therefore, we reject the
+assumption that residuals are independent.
 
+Therefore, we conclude that the ARIMA models are not a good fit for the
+data that show heteroscedasticity of the residuals but we hope that the
+GARCH model with deal with it.
 
 ## (e) Plot the volatility of the raw series of indices. What is your conclusion on the homoscedasticity assumption?
+
 ```{r question 3e}
 # Calculate volatility
 # SP500
@@ -460,9 +583,13 @@ volatility_nikkei <- volatility(as.vector(nikkei.df$NIKKEI))
 plot(volatility_nikkei, type="l", main="Volatility of the Raw NIKKEI", ylab="Volatility", xlab="Time")
 
 ```
-The volatility is not constant, which again violates the assumption of homoscedasticity. We will fit a GARCH model that addresses the issue of heteroscedasticity of the residuals. 
+
+The volatility is not constant, which again violates the assumption of
+homoscedasticity. We will fit a GARCH model that addresses the issue of
+heteroscedasticity of the residuals.
 
 ## (f) Fit GARCH models to the negative log returns of each series with both standardised and skewed t-distributions, with order (1; 1), using the garchFit() function from the fGarch library. Assess the quality of the fit by evaluating the residuals.
+
 ```{r question 2f}
 # Fit a GARCH(1,1) model with standard t-distribution to the log returns
 garch_sp500_std <- garchFit(~garch(1, 1), data = log_returns_sp500, cond.dist = "std")
@@ -521,10 +648,15 @@ Box.test(residuals_nikkei_std^2, lag = 20, type = "Ljung-Box")
 Box.test(residuals_nikkei_sstd^2, lag = 20, type = "Ljung-Box")
 
 ```
-Ho: data are independently distributed, implying that there is no autocorrelation among the values.
-H1: data exhibit some level of autocorrelation, meaning that past values in the series have a statistically significant influence on future values.
 
-The quality of the fit is very poor as the null hypothesis is rejected, implying that the negative log return exhibit some level of autocorrelation. 
+Ho: data are independently distributed, implying that there is no
+autocorrelation among the values. H1: data exhibit some level of
+autocorrelation, meaning that past values in the series have a
+statistically significant influence on future values.
+
+The quality of the fit is very poor as the null hypothesis is rejected,
+implying that the negative log return exhibit some level of
+autocorrelation.
 
 ## (g) Residual serial correlation can be present when  tting a GARCH directly on the negative log returns.
 
@@ -601,135 +733,60 @@ Box.test(residuals_nikkei_sstd^2, lag = 20, type = "Ljung-Box")
 ```
 
 ## (h) Use the garchAuto.R script in order to fit a GARCH on the residuals of the ARMA(p,q) from
-```{r question 3h}
-garchAutoTryFit = function(
-    ll,
-    data,
-    trace=FALSE,
-    forecast.length=1,
-    with.forecast=TRUE,
-    ic="AIC",
-    garch.model="garch" )
-{
-  formula = as.formula( paste( sep="",
-                               "~ arma(", ll$order[1], ",", ll$order[2], ")+",
-                               garch.model,
-                               "(", ll$order[3], ",", ll$order[4], ")" ) )
-  fit = tryCatch( garchFit( formula=formula,
-                            data=data,
-                            trace=FALSE,
-                            cond.dist=ll$dist ),
-                  error=function( err ) TRUE,
-                  warning=function( warn ) FALSE )
-  
-  pp = NULL
-  
-  if( !is.logical( fit ) ) {
-    if( with.forecast ) {
-      pp = tryCatch( predict( fit,
-                              n.ahead=forecast.length,
-                              doplot=FALSE ),
-                     error=function( err ) FALSE,
-                     warning=function( warn ) FALSE )
-      if( is.logical( pp ) ) {
-        fit = NULL
-      }
-    }
-  } else {
-    fit = NULL
-  }
-  
-  if( trace ) {
-    if( is.null( fit ) ) {
-      cat( paste( sep="",
-                  "   Analyzing (", ll$order[1], ",", ll$order[2],
-                  ",", ll$order[3], ",", ll$order[4], ") with ",
-                  ll$dist, " distribution done.",
-                  "Bad model.\n" ) )
-    } else {
-      if( with.forecast ) {
-        cat( paste( sep="",
-                    "   Analyzing (", ll$order[1], ",", ll$order[2], ",",
-                    ll$order[3], ",", ll$order[4], ") with ",
-                    ll$dist, " distribution done.",
-                    "Good model. ", ic, " = ", round(fit@fit$ics[[ic]],6),
-                    ", forecast: ",
-                    paste( collapse=",", round(pp[,1],4) ), "\n" ) )
-      } else {
-        cat( paste( sep="",
-                    "   Analyzing (", ll[1], ",", ll[2], ",", ll[3], ",", ll[4], ") with ",
-                    ll$dist, " distribution done.",
-                    "Good model. ", ic, " = ", round(fit@fit$ics[[ic]],6), "\n" ) )
-      }
-    }
-  }
-  
-  return( fit )
-}
 
-garchAuto = function(
-    xx,
-    min.order=c(0,0,1,1),
-    max.order=c(5,5,1,1),
-    trace=FALSE,
-    cond.dists="sged",
-    with.forecast=TRUE,
-    forecast.length=1,
-    arma.sum=c(0,1e9),
-    cores=1,
-    ic="AIC",
-    garch.model="garch" )
-{
-  require( fGarch )
-  require( parallel )
-  
-  len = NROW( xx )
-  
-  models = list( )
-  
-  for( dist in cond.dists )
-    for( p in min.order[1]:max.order[1] )
-      for( q in min.order[2]:max.order[2] )
-        for( r in min.order[3]:max.order[3] )
-          for( s in min.order[4]:max.order[4] )
-          {
-            pq.sum = p + q
-            if( pq.sum <= arma.sum[2] && pq.sum >= arma.sum[1] )
-            {
-              models[[length( models ) + 1]] = list( order=c( p, q, r, s ), dist=dist )
-            }
-          }
-  
-  res = mclapply( models,
-                  garchAutoTryFit,
-                  data=xx,
-                  trace=trace,
-                  ic=ic,
-                  garch.model=garch.model,
-                  forecast.length=forecast.length,
-                  with.forecast=TRUE,
-                  mc.cores=cores )
-  
-  best.fit = NULL
-  
-  best.ic = 1e9
-  for( rr in res )
-  {
-    if( !is.null( rr ) )
-    {
-      current.ic = rr@fit$ics[[ic]]
-      if( current.ic < best.ic )
-      {
-        best.ic = current.ic
-        best.fit = rr
-      }
-    }
-  }
-  
-  if( best.ic < 1e9 )
-  {
-    return( best.fit )
-  }
-  
-  return( NULL )
-}
+\`\`\`{r question 3h} garchAutoTryFit = function( ll, data, trace=FALSE,
+forecast.length=1, with.forecast=TRUE, ic="AIC", garch.model="garch" ) {
+formula = as.formula( paste( sep="","\~ arma(",
+ll$order[1], ",", ll$order\[2\],")+", garch.model,"(",
+ll$order[3], ",", ll$order\[4\],")" ) ) fit = tryCatch( garchFit(
+formula=formula, data=data, trace=FALSE, cond.dist=ll\$dist ),
+error=function( err ) TRUE, warning=function( warn ) FALSE )
+
+pp = NULL
+
+if( !is.logical( fit ) ) { if( with.forecast ) { pp = tryCatch( predict(
+fit, n.ahead=forecast.length, doplot=FALSE ), error=function( err )
+FALSE, warning=function( warn ) FALSE ) if( is.logical( pp ) ) { fit =
+NULL } } } else { fit = NULL }
+
+if( trace ) { if( is.null( fit ) ) { cat( paste( sep=""," Analyzing (",
+ll$order[1], ",", ll$order\[2\],",", ll$order[3], ",", ll$order\[4\],")
+with ",
+ll$dist, " distribution done.", "Bad model.\n" ) ) } else { if( with.forecast ) { cat( paste( sep="", " Analyzing (", ll$order\[1\],",",
+ll$order[2], ",", ll$order\[3\],",", ll$order[4], ") with ", ll$dist,"
+distribution done.", "Good model.", ic, " = ",
+round(fit\@fit$ics[[ic]],6), ", forecast: ", paste( collapse=",", round(pp[,1],4) ), "\n" ) ) } else { cat( paste( sep="", " Analyzing (", ll[1], ",", ll[2], ",", ll[3], ",", ll[4], ") with ", ll$dist,"
+distribution done.", "Good model.", ic, " = ",
+round(fit\@fit\$ics\[\[ic\]\],6),"\n" ) ) } } }
+
+return( fit ) }
+
+garchAuto = function( xx, min.order=c(0,0,1,1), max.order=c(5,5,1,1),
+trace=FALSE, cond.dists="sged", with.forecast=TRUE, forecast.length=1,
+arma.sum=c(0,1e9), cores=1, ic="AIC", garch.model="garch" ) { require(
+fGarch ) require( parallel )
+
+len = NROW( xx )
+
+models = list( )
+
+for( dist in cond.dists ) for( p in min.order\[1\]:max.order\[1\] ) for(
+q in min.order\[2\]:max.order\[2\] ) for( r in
+min.order\[3\]:max.order\[3\] ) for( s in min.order\[4\]:max.order\[4\]
+) { pq.sum = p + q if( pq.sum \<= arma.sum\[2\] && pq.sum \>=
+arma.sum\[1\] ) { models\[\[length( models ) + 1\]\] = list( order=c( p,
+q, r, s ), dist=dist ) } }
+
+res = mclapply( models, garchAutoTryFit, data=xx, trace=trace, ic=ic,
+garch.model=garch.model, forecast.length=forecast.length,
+with.forecast=TRUE, mc.cores=cores )
+
+best.fit = NULL
+
+best.ic = 1e9 for( rr in res ) { if( !is.null( rr ) ) { current.ic =
+rr\@fit\$ics\[\[ic\]\] if( current.ic \< best.ic ) { best.ic =
+current.ic best.fit = rr } } }
+
+if( best.ic \< 1e9 ) { return( best.fit ) }
+
+return( NULL ) }

@@ -12,6 +12,7 @@ packages <- c(
   "plotly",  # practical 1 & 2
   "MASS",# practical 1 
   "TTR", # practical 1
+  "car", # practical 1
   "fGarch", # practical 1
   "ismev", # practical 2 
   "VGAM", # practical 2 
