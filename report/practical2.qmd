@@ -5,13 +5,14 @@ date: "2023-10-21"
 output: html_document
 ---
 
-
 ```{r, echo = FALSE, message = FALSE, warning=FALSE}
 source(here::here("script/setup.R"))
 ```
-# Part 1: Venice 
-(A)  Read in the data. Extract and represent the yearly max values from 1940 to 2009. What do you
-observe ?
+
+# Part 1: Venice
+
+(A) Read in the data. Extract and represent the yearly max values from 1940 to 2009. What do you observe ?
+
 ```{r}
 # Read the Data
 venice <- venice90
@@ -24,10 +25,10 @@ plot_ly(venice_max, x = ~year, y = ~max_sea_level, type = 'scatter', mode = 'mar
 
 ```
 
-From the plot, we can discern that there are a total of 11 data points that surpass the 140 cm threshold, marked by the red line. The highest recorded sea level, occurring in 1966, is notably distinct as the peak value in the dataset, reaching 192 cm. When considering the distribution of the maximum values each year, there's a hint of a potential trend in the data. Whether extreme values are stationary or not will be investigated in (D) using likelihood ratio test. 
+From the plot, we can discern that there are a total of 11 data points that surpass the 140 cm threshold, marked by the red line. The highest recorded sea level, occurring in 1966, is notably distinct as the peak value in the dataset, reaching 192 cm. When considering the distribution of the maximum values each year, there's a hint of a potential trend in the data. Whether extreme values are stationary or not will be investigated in (D) using likelihood ratio test.
 
-(B) We are end of 2009 and would like to predict the yearly maximum values over the next 13 years (from 2010 to 2022). A naive approach consists of fitting a linear model on the observed
-yearly maxima and predict their values for 2010-2022. Proceed to this prediction and provide confidence intervals.
+(B) We are end of 2009 and would like to predict the yearly maximum values over the next 13 years (from 2010 to 2022). A naive approach consists of fitting a linear model on the observed yearly maxima and predict their values for 2010-2022. Proceed to this prediction and provide confidence intervals.
+
 ```{r}
 # Create linear model 
 mod1 <- lm(max_sea_level ~ year, data = venice_max)
@@ -39,10 +40,10 @@ mod1_predict
 
 ```
 
-
-As anticipated, the simple approach leads to poor predictions, with confidence intervals spanning from 124 to 146. The main reason for this lackluster performance is the  violation of key assumptions in linear modeling when dealing with extreme values, such as: linearity, homoescedasticity and increased sensitivity to outliers. Consequently, we will turn to specialized models rooted in the realm of extreme value theory to address these challenges more effectively.
+As anticipated, the simple approach leads to poor predictions, with confidence intervals spanning from 124 to 146. The main reason for this lackluster performance is the violation of key assumptions in linear modeling when dealing with extreme values, such as: linearity, homoescedasticity and increased sensitivity to outliers. Consequently, we will turn to specialized models rooted in the realm of extreme value theory to address these challenges more effectively.
 
 (C) Represent in the same graph the predicted yearly max values for the period 2010-2022, their pointwise confidence bounds and the observed values greater than 140 cm from the table below.
+
 ```{r, warning = FALSE}
 
 # Stored the predictions in a dataframe 
@@ -80,10 +81,10 @@ interactive_venice_plot <- interactive_venice_plot %>%
 interactive_venice_plot
 
 ```
+
 As previously noted and showcased in the plot, the predictions of extreme values using a linear model exhibit significant shortcomings. The predicted values follow a linear pattern and consistently fall short of accurately capturing extreme events. There is one exception, the observation on the 13th of November 2019, for which the Confidence Interval of the predicted value aligns well with the actual value. Nonetheless, even in this case, the model underestimates the observed value by approximately 9 cm, a substantial deviation.
 
 To address these limitations, we are turning to the Generalized Extreme Value (GEV) distribution, a more suitable approach for modeling extreme events.
-
 
 (D) Fit a GEV a with constant parameters to the historical yearly max values. Fit a GEV with time varying location parameter. Compare the two embedded models using likelihood ratio test (LRT). Show diagnostic plots.
 
@@ -116,9 +117,8 @@ Next, we aimed to fit a GEV model with time-varying location parameters. We expl
 
 On the other hand, the harmonic function, which is often used to model periodic phenomena, yielded a different outcome. It allowed us to reject the null hypothesis of the likelihood ratio test, indicating that the GEV model with time-varying location parameters was a better fit. This result suggested that our maximum values displayed non-stationary behavior.
 
-
-
 (E) Add if necessary a time varying scale and or shape GEV parameter. Select the best model according to LRT.
+
 ```{r}
 # Fit a GEV model with time-varying scale 
 gev_time_varying_scale <-  fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", scale.fun = ~ yy) # AIC: 600
@@ -130,9 +130,11 @@ gev_time_varying_scale_shape_location <- fevd(venice_max$max_sea_level, venice_m
 lrt_result <- lr.test(gev_time_varying_location_shape, gev_time_varying_scale_shape_location) # can't reject the null hypothesis so we decide to choose the gev_time_varying_location_shape 
 
 ```
+
 After comparing the AIC of the models above, it aprears that the best models are the "gev_time_varying_location_shape" and "gev_time_varying_scale_shape_location", for which we did the LRT test. it shows us that the best model is the less complex one: the "gev_time_varying_location_shape".
 
 (F) Predict the 13-years return level, each year from 2010 to 2022.
+
 ```{r}
 return_levels_df <- data.frame(return_level = numeric())  # Create an empty data frame with a column "return_level"
 
@@ -154,37 +156,61 @@ print(return_levels_df)
 
 ```
 
-
 ```{r}
 rlci<- data.frame(return_level = numeric(), Lower_CI = numeric(), Upper_CI = numeric())
-B <- 5
-return_level <- numeric(B)
+B <- 200
+rt1 <- matrix(0, nrow=B, ncol=13)
 
 
-for (i in 1:13){
-  
-  for(j in 1:B){
-      
+for(j in 1:B){
+  for (i in 1:13){
+
     data <- suppressWarnings(rgev(70, loc = gev_time_varying_location_shape$results$par[1] + gev_time_varying_location_shape$results$par[2] * (70+i), scale = gev_time_varying_location_shape$results$par[3], shape = gev_time_varying_location_shape$results$par[4] + gev_time_varying_location_shape$results$par[5] * (70+i)))
     
-    fit <- suppressWarnings(fevd(data, venice_max, type = "GEV", time.units = "year", shape.fun = ~ yy, location.fun =  ~ yy))
-    
-    return_level[j] <- qgev(1 - 1/13, location = fit$results$par[1] + fit$results$par[2] * (70+i), scale = fit$results$par[3], shape = fit$results$par[4] + fit$results$par[5] * (70+i))
-    
-  }
-  rt <- mean(return_level)
-  rtl <- quantile(return_level, probs = 0.025)
-  rtu <- quantile(return_level, probs = 0.975)
+  fit <- gev.fit(data)
   
-  rlci <- rbind(rlci, data.frame(return_level = rt, Lower_CI = rtl, Upper_CI = rtu))
-}
+  rt1[j,i] <- qgev(1-1/13, location = fit$mle[1], scale = fit$mle[2], shape = fit$mle[3])
+  
+  }}
+
+
+rt <- apply(rt1,2,function(x){quantile(x,0,5)})
+rtl <- apply(rt1,2,function(x){quantile(x,0,025)})
+rtu <- apply(rt1,2,function(x){quantile(x,0,975)}) 
+  
+rlci <- rbind(rlci, data.frame(return_level = rt, Lower_CI = rtl, Upper_CI = rtu))
+
+
+plot(1:13, rt)
+lines(1:13, rtl, lty = 2, col = 2)
+lines(1:13, rtu, lty = 1)
+
 ```
 
-
-Either find a predict function with a package or do it by hand, if by hand need to compute the mu for 2010-2022 and : 1-pchisq(-2*(mod2$nllh-mod1$nllh),1); k = 13. Return level should be between 139 and 157. 
-
+(F) Represent in the same graph your predictions of the 13-years return levels, their pointwise confidence intervals, the predicted yearly max values from the linear model and the observed values greater than 140 cm from the table below.
 
 
+```{r}
+rlci$Year = c(2010:2022)
+return_levels_df$Year = c(2010:2022)
+
+interactive_venice_plot %>% 
+  add_lines(data = rlci, x = ~Year, y = ~return_level, color = I("red"), name = "Predicted values (model)") %>%
+  add_ribbons(data = rlci, x = ~Year, ymin = ~Lower_CI, ymax = ~Upper_CI, color = I("red"), name  = "Confidence Interval (model)")
+```
+
+Here, we can observe a trend slowly increasing from the predicted values. However, there are a few problems with the method we used. Indeed, the confidence intervals are way too close to the return level, giving us bounds which are way too narrow to observe anything significant.
 
 
-# Part 2: nuclear reactors 
+(I)Broadly speaking, each year, there is a chance of 1/13 that the observed value is above the 13- years return level. Comment the results for both the linear model prediction and GEV approach. Note that 12 of the 20 events occurred in the 21st century.
+
+
+The main issue we see is that the observed values from 2010 to 2022 are much higher than the expected return level. This indicates that the models we are using are crucially underestimating how fast the sea level is currently rising, most notably the extreme values.
+
+The linear model predictions did not give us something reliable enough, as it did not take into account its parameters varying. As a result, only one of the observed values is inside of the confidence intervals.
+
+the return levels from the GEV model are giving us better results overall, but still far from the reality. If we imagine similarly wide confidence intervals for the GEV (ignoring the limitations we had) compared to the linear model, we could potentially have up to 6/8 values inside its bounds, which would be somewhat good, except for the two highest values (12/11/2019 and 22/11/2022), which are on a scope that wasn't even imagined by the model.
+
+
+In conclusion, the models we used until now were all incomplete, and could not predict the massive change the sea levels underwent, most notably in the latest 3 years where the values attained heights never seen before. This event can be explained through the effects of global warming, accelerating the pace at which the sea level rises worldwide.
+
