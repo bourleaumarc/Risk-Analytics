@@ -21,6 +21,10 @@ packages <- c(
   "scales", # practical 2 
   "extRemes",# practical 2 
   "knitr",
+  "xts",
+  "kableExtra",
+  "dygraphs",
+  "gridExtra",
   "readr",
   "lubridate")
 
