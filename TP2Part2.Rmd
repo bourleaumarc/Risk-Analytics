@@ -4,21 +4,20 @@ output: html_document
 date: "2023-11-16"
 ---
 
+# Part 2
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
-library(readr)
-
-load("~/Desktop/GitHub/Risk-Analytics/data/niveau.Rdata")
+```{r, echo = FALSE, message = FALSE, warning=FALSE}
+source(here::here("script/setup.R"))
 ```
+(a) Read in the data. Display a time series plot of the water level across the data range and try to identify times of highest levels.
 
-a)
-```{r}
+```{r ltime series plot}
+load(here::here("data/niveau.Rdata"))
 niveau$Zeitstempel <- as.Date(niveau$Zeitstempel)
 niveau$Zeitpunkt_des_Auftretens <- as.Date(niveau$Zeitpunkt_des_Auftretens)
-
 # Plot time series
 plot(niveau$Zeitstempel, niveau$Wert, type = 'l', xlab = 'Date', ylab = 'Water Level (m)',
      main = 'Time Series Plot of Water Levels')
@@ -32,7 +31,7 @@ TOHL
 
 b)
 ```{r}
- Display a histogram of water levels
+# Display a histogram of water levels
 hist(niveau$Wert, breaks = 23, col = 'skyblue', border = 'black', 
      main = 'Histogram of Water Levels', xlab = 'Water Level (m)', ylab = 'Frequency')
 
@@ -48,8 +47,6 @@ threshrange.plot(niveau$Wert, r=c(325,330), nint = 20)
 
 c)
 ```{r}
-library(extRemes)
-
 # Choose a threshold (adjust as needed)
 quantile(niveau$Wert, 0.95)
 threshold1 = 327
@@ -67,8 +64,6 @@ fitMLE
 d)
 ```{r}
 #Clustering of extremes
-library(extRemes)
-
 extremalindex(niveau$Wert, threshold = threshold1)
 
 ```
@@ -77,8 +72,6 @@ We have to decluster now!!
 
 e)
 ```{r}
-library(extRemes)
-
 # return levels for 50 and 100 years
 return_50 <- qevd(1-1/50, scale = 0.4, shape = -0.07)
 return_100 <- qevd(1 - 1/100, scale = 0.4, shape = -0.07)

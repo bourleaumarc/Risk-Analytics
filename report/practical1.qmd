@@ -250,7 +250,7 @@ qqline(rt(length(log_returns_nikkei), df = fit_nikkei_t$estimate["df"]))
 
 ```
 # Part 2: Financial time series, volatility and the random walk hypothesis 
-# (a) Plot the ACF of all the series in Part 1 (i.e. the raw series as well as the negative log returns).What do you observe?
+## (a) Plot the ACF of all the series in Part 1 (i.e. the raw series as well as the negative log returns).What do you observe?
 ```{r question 2a}
 ##############################################################  RAW SERIES ############################################################### 
 par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
@@ -325,7 +325,7 @@ Using the negative log-returns, we have high p-values, meaning that we can't rej
 
 However, it's almost not the case for the Nikkei index, as it's p-value is almost 0.05. Therefore, it's the one that appears to have the less autocorrelation.
 
-## (c) Propose ARIMA models for each of the negative log returns series, based on visualisation tools (e.g. ACF and PACF). Select an ARIMA model using auto.arima() (forecast package) to each of the negative log returns series. Comment on the di erence. Assess the residuals of the resulting models.
+## (c) Propose ARIMA models for each of the negative log returns series, based on visualisation tools (e.g. ACF and PACF). Select an ARIMA model using `auto.arima()` (forecast package) to each of the negative log returns series. Comment on the difference. Assess the residuals of the resulting models.
 
 In order to select the order of the
 
@@ -366,9 +366,10 @@ adf.test(log_returns_nikkei)
 
 ```
 
-d = 0, no need to differentiate as p-value \< 0.05 makes sense (to comment)
+d = 0, no need to differentiate as p-value \< 0.05. 
 
 ```{r}
+############################## CHOOSING OUR OWN ORDER ############################## 
 ## ARIMA SP500
 Arima(log_returns_sp500, order = c(8,0,7))
 ## ARIMA CAC40
@@ -377,31 +378,225 @@ Arima(log_returns_cac40, order = c(5,0,5))
 Arima(log_returns_nasdaq, order = c(7,0,7))
 ## ARIMA NIKKEI
 Arima(log_returns_nikkei, order = c(1,0,1))
-
-
+##############################  AUTO ARIMA ############################## 
+plot_1 <- auto.arima(log_returns_sp500) # better the auto with parameters: ARIMA(2,0,1) non-zero mean 
+plot_2 <- auto.arima(log_returns_cac40) # better the auto with parameters: ARIMA(0,0,0) zero-mean 
+plot_3 <- auto.arima(log_returns_nasdaq)# better the auto with parameters: ARIMA(2,0,2) with zero mean 
+plot_4 <- auto.arima(log_returns_nikkei)# better the auto with parameters: ARIMA(2,0,1) with zero mean 
+#### Assess the residuals
+# Plot the residuals
+plot(plot_1$residuals); plot(plot_2$residuals); plot(plot_3$residuals); plot(plot_4$residuals)
+# Check for zero mean 
+mean(plot_1$residuals); mean(plot_2$residuals) ; mean(plot_3$residuals) ; mean(plot_4$residuals) # all residual's means are very close from 0 
 ```
+Using `auto.arima` yields better results in terms of AIC. By assessing the residuals, we observe that they might be independent, as their mean is close to 0. 
 
-```{r}
+## (d) Assess the residuals of the resulting models from (c), both their raw values and their absolute values, through visual tools (such as the ACF) and formal tests (e.g. Ljung-Box). What do you conclude about the independence assumption?
 
-model_sp500 <- auto.arima(log_returns_sp500)# better the auto with parameters: ARIMA(2,0,1) non-zero mean 
-print(model_sp500)
-auto.arima(log_returns_cac40) # better the auto with parameters: ARIMA(0,0,0) zero-mean 
-auto.arima(log_returns_nasdaq)# better the auto with parameters: ARIMA(2,0,2) with zero mean 
-auto.arima(log_returns_nikkei)# better the auto with parameters: ARIMA(2,0,1) with zero mean 
-
-
-
-```
-
-Assess the residuals:
-
-```{r}
-# Example for assessing residuals of the S&P 500 ARIMA model
-residuals_sp500 <- residuals(model_sp500)
-#residuals_cac40 <- residuals(model_cac40)
-#residuals_nikkei <- residuals(model_nikkei)
-
+```{r question 2d}
 # Ljung-Box test for autocorrelation in residuals
-Box.test(residuals_sp500, lag = 30 , type = "Ljung") # almost significant means may indicate that the ARIMA model can be improved ()
-# 
+# Obtain raw residuals
+raw_residuals_sp500 <- residuals(plot_1)
+raw_residuals_cac40 <- residuals(plot_2)
+raw_residuals_nasdaq <- residuals(plot_3)
+raw_residuals_nikkei <- residuals(plot_4)
+
+# Obtain absolute residuals
+absolute_residuals_sp500 <- abs(raw_residuals_sp500)
+absolute_residuals_cac40 <- abs(raw_residuals_cac40)
+absolute_residuals_nasdaq <- abs(raw_residuals_nasdaq)
+absolute_residuals_nikkei <- abs(raw_residuals_nikkei)
+
+# Plot ACF of raw residuals
+Acf(raw_residuals_sp500, main = "ACF of Raw Residuals SP 500")
+Acf(raw_residuals_cac40, main = "ACF of Raw Residuals CAC 40")
+Acf(raw_residuals_nasdaq, main = "ACF of Raw Residuals NASDAQ")
+Acf(raw_residuals_nikkei, main = "ACF of Raw Residuals NIKKEI")
+
+# Plot ACF of absolute residuals
+Acf(absolute_residuals_sp500, main = "ACF of Absolute Residuals SP 500")
+Acf(absolute_residuals_cac40, main = "ACF of Absolute Residuals CAC40")
+Acf(absolute_residuals_nasdaq, main = "ACF of Absolute Residuals NASDAQ")
+Acf(absolute_residuals_nikkei, main = "ACF of Absolute Residuals NIKKEI")
+
+# Ljung-Box test on raw residuals
+Box.test(raw_residuals_sp500, type = "Ljung-Box")
+Box.test(raw_residuals_cac40, type = "Ljung-Box")
+Box.test(raw_residuals_nasdaq, type = "Ljung-Box")
+Box.test(raw_residuals_nikkei, type = "Ljung-Box")
+
+# Ljung-Box test on absolute residuals
+Box.test(absolute_residuals_sp500, type = "Ljung-Box")
+Box.test(absolute_residuals_cac40, type = "Ljung-Box")
+Box.test(absolute_residuals_nasdaq, type = "Ljung-Box")
+Box.test(absolute_residuals_nikkei, type = "Ljung-Box")
+
 ```
+Ho: data are independently distributed, implying that there is no autocorrelation among the values.
+H1: data exhibit some level of autocorrelation, meaning that past values in the series have a statistically significant influence on future values.
+
+Looking at the Raw and Absolute residuals through ACF and Ljung-Box, we can see that SP500, CAC400 and NASDAQ residuals are autocorrelated. Moreover, NIKKEI's does not exhibit auto-correlation of the residuals for it's raw values, it does for the absolute. Therefore, we reject the assumption that residuals are independent. 
+
+Therefore, we conclude that the ARIMA models are not a good fit for the data that show heteroscedasticity of the residuals but we hope that the GARCH model with deal with it. 
+
+
+## (e) Plot the volatility of the raw series of indices. What is your conclusion on the homoscedasticity assumption?
+```{r question 3e}
+# Calculate volatility
+# SP500
+volatility_sp500 <- volatility(as.vector(sp500.df$SP500))
+plot(volatility_sp500, type="l", main="Volatility of the Raw SP 500", ylab="Volatility", xlab="Time")
+
+# CAC40
+volatility_cac40 <- volatility(as.vector(cac40.df$CAC40))
+plot(volatility_cac40, type="l", main="Volatility of the Raw CAC 40", ylab="Volatility", xlab="Time")
+
+# NASDAQ
+volatility_nasdaq <- volatility(as.vector(nasdaq.df$NASDAQ))
+plot(volatility_nasdaq, type="l", main="Volatility of the Raw NASDAQ", ylab="Volatility", xlab="Time")
+
+# NIKKEI
+volatility_nikkei <- volatility(as.vector(nikkei.df$NIKKEI))
+plot(volatility_nikkei, type="l", main="Volatility of the Raw NIKKEI", ylab="Volatility", xlab="Time")
+
+```
+The volatility is not constant, which again violates the assumption of homoscedasticity. We will fit a GARCH model that addresses the issue of heteroscedasticity of the residuals. 
+
+## (f) Fit GARCH models to the negative log returns of each series with both standardised and skewed t-distributions, with order (1; 1), using the garchFit() function from the fGarch library. Assess the quality of the fit by evaluating the residuals.
+```{r question 2f}
+# Fit a GARCH(1,1) model with standard t-distribution to the log returns
+garch_sp500_std <- garchFit(~garch(1, 1), data = log_returns_sp500, cond.dist = "std")
+garch_cac40_std <- garchFit(~garch(1, 1), data = log_returns_cac40, cond.dist = "std")
+garch_NASDAQ_std <- garchFit(~garch(1, 1), data = log_returns_nasdaq, cond.dist = "std")
+garch_nikkei_std <- garchFit(~garch(1, 1), data = log_returns_nikkei, cond.dist = "std")
+
+
+# Fit a GARCH(1,1) model with skewed t-distribution to the log returns
+garch_sp500_sstd <- garchFit(~garch(1, 1), data = log_returns_sp500, cond.dist = "sstd")
+garch_cac40_sstd <- garchFit(~garch(1, 1), data = log_returns_cac40, cond.dist = "sstd")
+garch_NASDAQ_sstd <- garchFit(~garch(1, 1), data = log_returns_nasdaq, cond.dist = "sstd")
+garch_nikkei_sstd <- garchFit(~garch(1, 1), data = log_returns_nikkei, cond.dist = "sstd")
+
+
+# After fitting the models, evaluate the residuals:
+# For standardized t-distribution
+residuals_sp500_std <- residuals(garch_sp500_std)
+residuals_cac40_std <- residuals(garch_cac40_std)
+residuals_NASDAQ_std <- residuals(garch_NASDAQ_std)
+residuals_nikkei_std <- residuals(garch_nikkei_std)
+
+# For skewed t-distribution
+residuals_sp500_sstd <- residuals(garch_sp500_sstd)
+residuals_cac40_sstd <- residuals(garch_cac40_sstd)
+residuals_NASDAQ_sstd <- residuals(garch_NASDAQ_sstd)
+residuals_nikkei_sstd <- residuals(garch_nikkei_sstd)
+
+# Plot the residuals and their ACF to assess quality
+# Using plot
+plot(residuals_sp500_std, main="Residuals of SP500 GARCH Model with std t-dist")
+acf(residuals_sp500_std^2, main="ACF of Squared Residuals for SP500 with std t-dist")
+plot(residuals_cac40_std, main="Residuals of CAC40 GARCH Model with std t-dist")
+acf(residuals_cac40_std^2, main="ACF of Squared Residuals for CAC40 with std t-dist")
+plot(residuals_NASDAQ_std, main="Residuals of NASDAQ GARCH Model with std t-dist")
+acf(residuals_NASDAQ_std^2, main="ACF of Squared Residuals for NASDAQ with std t-dist")
+plot(residuals_nikkei_std, main="Residuals of NIKKEI GARCH Model with std t-dist")
+acf(residuals_nikkei_std^2, main="ACF of Squared Residuals for NIKKEI with std t-dist")
+# For skewed distribution
+plot(residuals_sp500_sstd, main="Residuals of SP500 GARCH Model with sstd t-dist")
+acf(residuals_sp500_sstd^2, main="ACF of Squared Residuals for SP500 with sstd t-dist")
+plot(residuals_cac40_sstd, main="Residuals of CAC40 GARCH Model with sstd t-dist")
+acf(residuals_cac40_sstd^2, main="ACF of Squared Residuals for CAC40 with sstd t-dist")
+plot(residuals_NASDAQ_sstd, main="Residuals of NASDAQ GARCH Model with sstd t-dist")
+acf(residuals_NASDAQ_sstd^2, main="ACF of Squared Residuals for NASDAQ with sstd t-dist")
+plot(residuals_nikkei_sstd, main="Residuals of NIKKEI GARCH Model with sstd t-dist")
+acf(residuals_nikkei_sstd^2, main="ACF of Squared Residuals for NIKKEI with sstd t-dist")
+# Perform a Ljung-Box test on the squared residuals to check for remaining autocorrelation
+Box.test(residuals_sp500_std^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_sp500_sstd^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_cac40_std^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_cac40_sstd^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_NASDAQ_std^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_NASDAQ_sstd^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_nikkei_std^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_nikkei_sstd^2, lag = 20, type = "Ljung-Box")
+
+```
+Ho: data are independently distributed, implying that there is no autocorrelation among the values.
+H1: data exhibit some level of autocorrelation, meaning that past values in the series have a statistically significant influence on future values.
+
+The quality of the fit is very poor as the null hypothesis is rejected, implying that the negative log return exhibit some level of autocorrelation. 
+
+## (g) Residual serial correlation can be present when  tting a GARCH directly on the negative log returns.
+
+```{r question 3g}
+# Step 1: Fit an ARMA model
+# Using auto.arima to automatically select the best p, q
+arma_sp500_fit <- auto.arima(log_returns_sp500)
+arma_cac40_fit <- auto.arima(log_returns_cac40)
+arma_NASDAQ_fit <- auto.arima(log_returns_nasdaq)
+arma_nikkei_fit <- auto.arima(log_returns_nikkei)
+
+# Extract the residuals
+arma_sp500_residuals <- residuals(arma_sp500_fit)
+arma_cac40_residuals <- residuals(arma_cac40_fit)
+arma_NASDAQ_residuals <- residuals(arma_NASDAQ_fit)
+arma_nikkei_residuals <- residuals(arma_nikkei_fit)
+
+# Step 2: Fit a GARCH(1,1) model on the residuals of the ARMA model
+# Fit with standard t-distribution
+garch_sp500_std <- garchFit(~garch(1, 1), data = arma_sp500_residuals, cond.dist = "std")
+garch_cac40_std <- garchFit(~garch(1, 1), data = arma_cac40_residuals, cond.dist = "std")
+garch_NASDAQ_std <- garchFit(~garch(1, 1), data = arma_NASDAQ_residuals, cond.dist = "std")
+garch_nikkei_std <- garchFit(~garch(1, 1), data = arma_nikkei_residuals, cond.dist = "std")
+
+
+# Fit with skewed t-distribution
+garch_sp500_sstd <- garchFit(~garch(1, 1), data = arma_sp500_residuals, cond.dist = "sstd")
+garch_cac40_sstd <- garchFit(~garch(1, 1), data = arma_cac40_residuals, cond.dist = "sstd")
+garch_NASDAQ_sstd <- garchFit(~garch(1, 1), data = arma_NASDAQ_residuals, cond.dist = "sstd")
+garch_nikkei_sstd <- garchFit(~garch(1, 1), data = arma_nikkei_residuals, cond.dist = "sstd")
+
+# Assess the quality of the fit
+# For standard t-distribution
+residuals_sp500_std <- residuals(garch_sp500_std)
+residuals_cac40_std <- residuals(garch_cac40_std)
+residuals_NASDAQ_std <- residuals(garch_NASDAQ_std)
+residuals_nikkei_std <- residuals(garch_nikkei_std)
+plot(residuals_sp500_std, main="Residuals of SP500 ARMA-GARCH Model with std t-dist")
+plot(residuals_cac40_std, main="Residuals of CAC40 ARMA-GARCH Model with std t-dist")
+plot(residuals_NASDAQ_std, main="Residuals of NASDAQ ARMA-GARCH Model with std t-dist")
+plot(residuals_nikkei_std, main="Residuals of NIKKEI ARMA-GARCH Model with std t-dist")
+
+acf(residuals_sp500_std^2, main="ACF of Squared Residuals for SP500 ARMA-GARCH with std t-dist")
+acf(residuals_cac40_std^2, main="ACF of Squared Residuals for CAC40 ARMA-GARCH with std t-dist")
+acf(residuals_NASDAQ_std^2, main="ACF of Squared Residuals for NASDAQ ARMA-GARCH with std t-dist")
+acf(residuals_nikkei_std^2, main="ACF of Squared Residuals for NIKKEI ARMA-GARCH with std t-dist")
+
+Box.test(residuals_sp500_std^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_cac40_std^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_NASDAQ_std^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_nikkei_std^2, lag = 20, type = "Ljung-Box")
+
+
+# For skewed t-distribution
+residuals_sp500_sstd <- residuals(garch_sp500_sstd)
+residuals_cac40_sstd <- residuals(garch_cac40_sstd)
+residuals_NASDAQ_sstd <- residuals(garch_NASDAQ_sstd)
+residuals_nikkei_sstd <- residuals(garch_nikkei_sstd)
+
+plot(residuals_sp500_sstd, main="Residuals of SP500 ARMA-GARCH Model with sstd t-dist")
+plot(residuals_cac40_sstd, main="Residuals of CAC40 ARMA-GARCH Model with sstd t-dist")
+plot(residuals_NASDAQ_sstd, main="Residuals of NASDAQ ARMA-GARCH Model with sstd t-dist")
+plot(residuals_nikkei_sstd, main="Residuals of NIKKEI ARMA-GARCH Model with sstd t-dist")
+
+acf(residuals_sp500_sstd^2, main="ACF of Squared Residuals for SP500 ARMA-GARCH with sstd t-dist")
+acf(residuals_cac40_sstd^2, main="ACF of Squared Residuals for CAC40 ARMA-GARCH with sstd t-dist")
+acf(residuals_NASDAQ_sstd^2, main="ACF of Squared Residuals for NASDAQ ARMA-GARCH with sstd t-dist")
+acf(residuals_nikkei_sstd^2, main="ACF of Squared Residuals for NIKKEI ARMA-GARCH with sstd t-dist")
+
+Box.test(residuals_sp500_sstd^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_cac40_sstd^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_NASDAQ_sstd^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_nikkei_sstd^2, lag = 20, type = "Ljung-Box")
+
+

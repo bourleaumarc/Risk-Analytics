@@ -10,7 +10,9 @@ packages <- c(
   "nortest",  # practical 1
   "forecast",  # practical 1
   "plotly",  # practical 1 & 2
-  "MASS", # practical 1 
+  "MASS",# practical 1 
+  "TTR", # practical 1
+  "fGarch", # practical 1
   "ismev", # practical 2 
   "VGAM", # practical 2 
   "tidyverse", # practical 2 
