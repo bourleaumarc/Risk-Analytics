@@ -939,7 +939,7 @@ Box.test(residuals_nikkei_garch^2, lag = 20, type = "Ljung-Box")
 
 ```
 
-As we can see from the results of the Ljung-Box test on both the residuals and the squared residuals, we cannot reject the null hypothesis of autocorrelation being present in the residuals of the GARCH(1,1) model. As a result, we have a good quality fit wit a GARCH(1,1), though a bit weaker in the case of SP500
+As we can see from the results of the Ljung-Box test on both the residuals and the squared residuals, we cannot reject the null hypothesis of autocorrelation being present in the residuals of the GARCH(1,1) model. As a result, we have a good quality fit wit a GARCH(1,1), though a bit weaker in the case of SP500.
 
 
 
@@ -1115,5 +1115,5 @@ Box.test(residuals_nikkei_autogarch^2, lag = 20, type = "Ljung-Box")
 
 The results of the Ljung Box tests on the autoGarch function residuals give us non-significant p-values as well, except for the SP500. This means that we cannot reject the null hypothesis of autocorrelation between the residuals for CAC40, NASDAQ and Nikkei, but we do reject it at a 95% confidence level for SP500. However, the squared residuals for SP500 show a high enough p-value for it to not be rejected.
 
-We can conclude that SP500 could still has autocorrelation in its residuals, but it depends on which Ljung-Box test we decide to trust more (normal residuals or squared residuals).
+We can conclude that SP500 could still have autocorrelation in its residuals, but it depends on which Ljung-Box test we decide to trust more (normal residuals or squared residuals).
 
