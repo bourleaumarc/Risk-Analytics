@@ -781,7 +781,7 @@ heteroscedasticity of the residuals.
 
 ```{r question 2f}
 # Fit a GARCH(1,1) model with standard t-distribution to the log returns
-garch_sp500_std <- garchFit(~garch(1, 1), data = log_returns_sp500.df$SP500, cond.dist = "std")
+garch_sp500_std <- garchFit(~garch(1, 1), data = log_returns_sp500$SP500, cond.dist = "std")
 garch_cac40_std <- garchFit(~garch(1, 1), data = log_returns_cac40$CAC40, cond.dist = "std")
 garch_NASDAQ_std <- garchFit(~garch(1, 1), data = log_returns_nasdaq$NASDAQ, cond.dist = "std")
 garch_nikkei_std <- garchFit(~garch(1, 1), data = log_returns_nikkei$NIKKEI, cond.dist = "std")
@@ -792,19 +792,18 @@ garch_cac40_sstd <- garchFit(~garch(1, 1), data = log_returns_cac40$CAC40, cond.
 garch_NASDAQ_sstd <- garchFit(~garch(1, 1), data = log_returns_nasdaq$NASDAQ, cond.dist = "sstd")
 garch_nikkei_sstd <- garchFit(~garch(1, 1), data = log_returns_nikkei$NIKKEI, cond.dist = "sstd")
 
-
 # After fitting the models, evaluate the residuals:
 # For standardized t-distribution
-residuals_sp500_std <- residuals(garch_sp500_std)
-residuals_cac40_std <- residuals(garch_cac40_std)
-residuals_NASDAQ_std <- residuals(garch_NASDAQ_std)
-residuals_nikkei_std <- residuals(garch_nikkei_std)
+residuals_sp500_std <- residuals(garch_sp500_std, standardize = TRUE)
+residuals_cac40_std <- residuals(garch_cac40_std, standardize = TRUE)
+residuals_NASDAQ_std <- residuals(garch_NASDAQ_std, standardize = TRUE)
+residuals_nikkei_std <- residuals(garch_nikkei_std, standardize = TRUE)
 
 # For skewed t-distribution
-residuals_sp500_sstd <- residuals(garch_sp500_sstd)
-residuals_cac40_sstd <- residuals(garch_cac40_sstd)
-residuals_NASDAQ_sstd <- residuals(garch_NASDAQ_sstd)
-residuals_nikkei_sstd <- residuals(garch_nikkei_sstd)
+residuals_sp500_sstd <- residuals(garch_sp500_sstd, standardize = TRUE)
+residuals_cac40_sstd <- residuals(garch_cac40_sstd, standardize = TRUE)
+residuals_NASDAQ_sstd <- residuals(garch_NASDAQ_sstd, standardize = TRUE)
+residuals_nikkei_sstd <- residuals(garch_nikkei_sstd, standardize = TRUE)
 
 # Plot the residuals and their ACF to assess quality
 # Using plot
@@ -872,6 +871,16 @@ The quality of the fit is very poor as the null hypothesis is rejected,
 implying that the negative log return exhibit some level of
 autocorrelation.
 
+```{r}
+# Determining if the skewed t distribution is better than the standard t distribution
+boxplot(residuals_sp500_std - residuals_sp500_sstd)
+boxplot(residuals_cac40_std - residuals_cac40_sstd)
+boxplot(residuals_NASDAQ_std - residuals_NASDAQ_sstd)
+boxplot(residuals_nikkei_std - residuals_nikkei_sstd)
+
+```
+As we can see from these boxplots, the standard t distribution and the skewed t distribution are slightly different, but the difference is so minimal that even if the skewness is a significant parameter, it does not change the results in a significant manner. Therefore, we will proceed with the simpler model, which is the standard t distribution.
+
 ## (g) Residual serial correlation can be present when fitting a GARCH directly on the negative log returns.
 
 ```{r question 3g, include=FALSE}
@@ -887,66 +896,224 @@ arma_sp500_residuals <- residuals(arma_sp500_fit)
 arma_cac40_residuals <- residuals(arma_cac40_fit)
 arma_NASDAQ_residuals <- residuals(arma_NASDAQ_fit)
 arma_nikkei_residuals <- residuals(arma_nikkei_fit)
+acf(arma_sp500_residuals)
 
+# Assess the ARMA squared residuals
+par(mfrow = c(2, 2))
+acf(arma_sp500_residuals^2)
+acf(arma_cac40_residuals^2)
+acf(arma_NASDAQ_residuals^2)
+acf(arma_nikkei_residuals^2)
+```
+
+```{r}
 # Step 2: Fit a GARCH(1,1) model on the residuals of the ARMA model
-# Fit with standard t-distribution
 garch_sp500_std <- garchFit(~garch(1, 1), data = arma_sp500_residuals, cond.dist = "std")
 garch_cac40_std <- garchFit(~garch(1, 1), data = arma_cac40_residuals, cond.dist = "std")
 garch_NASDAQ_std <- garchFit(~garch(1, 1), data = arma_NASDAQ_residuals, cond.dist = "std")
 garch_nikkei_std <- garchFit(~garch(1, 1), data = arma_nikkei_residuals, cond.dist = "std")
-
-
-# Fit with skewed t-distribution
-garch_sp500_sstd <- garchFit(~garch(1, 1), data = arma_sp500_residuals, cond.dist = "sstd")
-garch_cac40_sstd <- garchFit(~garch(1, 1), data = arma_cac40_residuals, cond.dist = "sstd")
-garch_NASDAQ_sstd <- garchFit(~garch(1, 1), data = arma_NASDAQ_residuals, cond.dist = "sstd")
-garch_nikkei_sstd <- garchFit(~garch(1, 1), data = arma_nikkei_residuals, cond.dist = "sstd")
 ```
 
 ```{r quality of fit}
-# Assess the quality of the fit
-# For standard t-distribution
-residuals_sp500_std <- residuals(garch_sp500_std)
-residuals_cac40_std <- residuals(garch_cac40_std)
-residuals_NASDAQ_std <- residuals(garch_NASDAQ_std)
-residuals_nikkei_std <- residuals(garch_nikkei_std)
-par(mfrow = c(2, 2))
-plot(residuals_sp500_std, main="SP500 residuals with std t-dist")
-plot(residuals_cac40_std, main="CAC40 residuals with std t-dist")
-plot(residuals_NASDAQ_std, main="NASDAQ residuals with std t-dist")
-plot(residuals_nikkei_std, main="NIKKEI residuals with std t-dist")
-par(mfrow = c(2, 2))
-acf(residuals_sp500_std^2, main="ACF of Squared Residuals for SP500 with std t-dist")
-acf(residuals_cac40_std^2, main="ACF of Squared Residuals for CAC40 with std t-dist")
-acf(residuals_NASDAQ_std^2, main="ACF of Squared Residuals for NASDAQ with std t-dist")
-acf(residuals_nikkei_std^2, main="ACF of Squared Residuals for NIKKEI with std t-dist")
-Box.test(residuals_sp500_std^2, lag = 20, type = "Ljung-Box")
-Box.test(residuals_cac40_std^2, lag = 20, type = "Ljung-Box")
-Box.test(residuals_NASDAQ_std^2, lag = 20, type = "Ljung-Box")
-Box.test(residuals_nikkei_std^2, lag = 20, type = "Ljung-Box")
+# Step 3: Assess the quality of the fit
+residuals_sp500_garch <- residuals(garch_sp500_std, standardize = TRUE)
+residuals_cac40_garch <- residuals(garch_cac40_std, standardize = TRUE)
+residuals_NASDAQ_garch <- residuals(garch_NASDAQ_std, standardize = TRUE)
+residuals_nikkei_garch <- residuals(garch_nikkei_std, standardize = TRUE)
 
+par(mfrow = c(2, 2))
+plot(residuals_sp500_garch, main="SP500 residuals with std t-dist")
+plot(residuals_cac40_garch, main="CAC40 residuals with std t-dist")
+plot(residuals_NASDAQ_garch, main="NASDAQ residuals with std t-dist")
+plot(residuals_nikkei_garch, main="NIKKEI residuals with std t-dist")
 
-# For skewed t-distribution
-par(mfrow = c(2, 2))
-residuals_sp500_sstd <- residuals(garch_sp500_sstd)
-residuals_cac40_sstd <- residuals(garch_cac40_sstd)
-residuals_NASDAQ_sstd <- residuals(garch_NASDAQ_sstd)
-residuals_nikkei_sstd <- residuals(garch_nikkei_sstd)
-par(mfrow = c(2, 2))
-plot(residuals_sp500_sstd, main="SP500 residuals with sstd t-dist")
-plot(residuals_cac40_sstd, main="CAC40 residuals with sstd t-dist")
-plot(residuals_NASDAQ_sstd, main="NASDAQ residuals with sstd t-dist")
-plot(residuals_nikkei_sstd, main="NIKKEI residuals with sstd t-dist")
-par(mfrow = c(2, 2))
-acf(residuals_sp500_sstd^2, main="ACF of Squared Residuals for SP500 with sstd t-dist")
-acf(residuals_cac40_sstd^2, main="ACF of Squared Residuals for CAC40 with sstd t-dist")
-acf(residuals_NASDAQ_sstd^2, main="ACF of Squared Residuals for NASDAQ with sstd t-dist")
-acf(residuals_nikkei_sstd^2, main="ACF of Squared Residuals for NIKKEI with sstd t-dist")
-par(mfrow = c(2, 2))
-Box.test(residuals_sp500_sstd^2, lag = 20, type = "Ljung-Box")
-Box.test(residuals_cac40_sstd^2, lag = 20, type = "Ljung-Box")
-Box.test(residuals_NASDAQ_sstd^2, lag = 20, type = "Ljung-Box")
-Box.test(residuals_nikkei_sstd^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_sp500_garch, lag = 20, type = "Ljung-Box")
+Box.test(residuals_cac40_garch, lag = 20, type = "Ljung-Box")
+Box.test(residuals_NASDAQ_garch, lag = 20, type = "Ljung-Box")
+Box.test(residuals_nikkei_garch, lag = 20, type = "Ljung-Box")
+
+Box.test(residuals_sp500_garch^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_cac40_garch^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_NASDAQ_garch^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_nikkei_garch^2, lag = 20, type = "Ljung-Box")
+
 ```
 
+As we can see from the results of the Ljung-Box test on both the residuals and the squared residuals, we cannot reject the null hypothesis of autocorrelation being present in the residuals of the GARCH(1,1) model. As a result, we have a good quality fit wit a GARCH(1,1), though a bit weaker in the case of SP500
+
+
+
 ## (h) Use the garchAuto.R script in order to fit a GARCH on the residuals of the ARMA(p,q) from (g). Assess the quality of the  t.
+
+```{r}
+# Auto GARCH formula
+garchAutoTryFit = function(
+    ll,
+    data,
+    trace=FALSE,
+    forecast.length=1,
+    with.forecast=TRUE,
+    ic="AIC",
+    garch.model="garch" )
+{
+  formula = as.formula( paste( sep="",
+                               "~ arma(", ll$order[1], ",", ll$order[2], ")+",
+                               garch.model,
+                               "(", ll$order[3], ",", ll$order[4], ")" ) )
+  fit = tryCatch( garchFit( formula=formula,
+                            data=data,
+                            trace=FALSE,
+                            cond.dist=ll$dist ),
+                  error=function( err ) TRUE,
+                  warning=function( warn ) FALSE )
+  
+  pp = NULL
+  
+  if( !is.logical( fit ) ) {
+    if( with.forecast ) {
+      pp = tryCatch( predict( fit,
+                              n.ahead=forecast.length,
+                              doplot=FALSE ),
+                     error=function( err ) FALSE,
+                     warning=function( warn ) FALSE )
+      if( is.logical( pp ) ) {
+        fit = NULL
+      }
+    }
+  } else {
+    fit = NULL
+  }
+  
+  if( trace ) {
+    if( is.null( fit ) ) {
+      cat( paste( sep="",
+                  "   Analyzing (", ll$order[1], ",", ll$order[2],
+                  ",", ll$order[3], ",", ll$order[4], ") with ",
+                  ll$dist, " distribution done.",
+                  "Bad model.\n" ) )
+    } else {
+      if( with.forecast ) {
+        cat( paste( sep="",
+                    "   Analyzing (", ll$order[1], ",", ll$order[2], ",",
+                    ll$order[3], ",", ll$order[4], ") with ",
+                    ll$dist, " distribution done.",
+                    "Good model. ", ic, " = ", round(fit@fit$ics[[ic]],6),
+                    ", forecast: ",
+                    paste( collapse=",", round(pp[,1],4) ), "\n" ) )
+      } else {
+        cat( paste( sep="",
+                    "   Analyzing (", ll[1], ",", ll[2], ",", ll[3], ",", ll[4], ") with ",
+                    ll$dist, " distribution done.",
+                    "Good model. ", ic, " = ", round(fit@fit$ics[[ic]],6), "\n" ) )
+      }
+    }
+  }
+  
+  return( fit )
+}
+
+garchAuto = function(
+    xx,
+    min.order=c(0,0,1,1),
+    max.order=c(5,5,1,1),
+    trace=FALSE,
+    cond.dists="sged",
+    with.forecast=TRUE,
+    forecast.length=1,
+    arma.sum=c(0,1e9),
+    cores=1,
+    ic="AIC",
+    garch.model="garch" )
+{
+  require( fGarch )
+  require( parallel )
+  
+  len = NROW( xx )
+  
+  models = list( )
+  
+  for( dist in cond.dists )
+    for( p in min.order[1]:max.order[1] )
+      for( q in min.order[2]:max.order[2] )
+        for( r in min.order[3]:max.order[3] )
+          for( s in min.order[4]:max.order[4] )
+          {
+            pq.sum = p + q
+            if( pq.sum <= arma.sum[2] && pq.sum >= arma.sum[1] )
+            {
+              models[[length( models ) + 1]] = list( order=c( p, q, r, s ), dist=dist )
+            }
+          }
+  
+  res = mclapply( models,
+                  garchAutoTryFit,
+                  data=xx,
+                  trace=trace,
+                  ic=ic,
+                  garch.model=garch.model,
+                  forecast.length=forecast.length,
+                  with.forecast=TRUE,
+                  mc.cores=cores )
+  
+  best.fit = NULL
+  
+  best.ic = 1e9
+  for( rr in res )
+  {
+    if( !is.null( rr ) )
+    {
+      current.ic = rr@fit$ics[[ic]]
+      if( current.ic < best.ic )
+      {
+        best.ic = current.ic
+        best.fit = rr
+      }
+    }
+  }
+  
+  if( best.ic < 1e9 )
+  {
+    return( best.fit )
+  }
+  
+  return( NULL )
+}
+```
+
+```{r}
+#Fit the AutoGarch on the ARMA residuals
+autogarch_sp500_std <- garchAuto(arma_sp500_residuals)
+autogarch_cac40_std <- garchAuto(arma_cac40_residuals)
+autogarch_NASDAQ_std <- garchAuto(arma_NASDAQ_residuals)
+autogarch_nikkei_std <- garchAuto(arma_nikkei_residuals)
+
+#Get the standardized residuals of the AutoGarch
+residuals_sp500_autogarch <- residuals(autogarch_sp500_std, standardize = TRUE)
+residuals_cac40_autogarch <- residuals(autogarch_cac40_std, standardize = TRUE)
+residuals_NASDAQ_autogarch <- residuals(autogarch_NASDAQ_std, standardize = TRUE)
+residuals_nikkei_autogarch <- residuals(autogarch_nikkei_std, standardize = TRUE)
+
+par(mfrow = c(2, 2))
+plot(residuals_sp500_autogarch, main="SP500 residuals with std t-dist")
+plot(residuals_cac40_autogarch, main="CAC40 residuals with std t-dist")
+plot(residuals_NASDAQ_autogarch, main="NASDAQ residuals with std t-dist")
+plot(residuals_nikkei_autogarch, main="NIKKEI residuals with std t-dist")
+
+#Assess the quality of the fit
+Box.test(residuals_sp500_autogarch, lag = 20, type = "Ljung-Box")
+Box.test(residuals_cac40_autogarch, lag = 20, type = "Ljung-Box")
+Box.test(residuals_NASDAQ_autogarch, lag = 20, type = "Ljung-Box")
+Box.test(residuals_nikkei_autogarch, lag = 20, type = "Ljung-Box")
+
+Box.test(residuals_sp500_autogarch^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_cac40_autogarch^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_NASDAQ_autogarch^2, lag = 20, type = "Ljung-Box")
+Box.test(residuals_nikkei_autogarch^2, lag = 20, type = "Ljung-Box")
+
+
+```
+
+The results of the Ljung Box tests on the autoGarch function residuals give us non-significant p-values as well, except for the SP500. This means that we cannot reject the null hypothesis of autocorrelation between the residuals for CAC40, NASDAQ and Nikkei, but we do reject it at a 95% confidence level for SP500. However, the squared residuals for SP500 show a high enough p-value for it to not be rejected.
+
+We can conclude that SP500 could still has autocorrelation in its residuals, but it depends on which Ljung-Box test we decide to trust more (normal residuals or squared residuals).
+
