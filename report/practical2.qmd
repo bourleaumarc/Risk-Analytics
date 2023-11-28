@@ -11,7 +11,7 @@ source(here::here("script/setup.R"))
 
 # Part 1: Venice
 
-(A) Read in the data. Extract and represent the yearly max values from 1940 to 2009. What do you observe ?
+## (a) Read in the data. Extract and represent the yearly max values from 1940 to 2009. What do you observe ?
 
 ```{r}
 # Read the Data
@@ -27,7 +27,7 @@ plot_ly(venice_max, x = ~year, y = ~max_sea_level, type = 'scatter', mode = 'mar
 
 From the plot, we can discern that there are a total of 11 data points that surpass the 140 cm threshold, marked by the red line. The highest recorded sea level, occurring in 1966, is notably distinct as the peak value in the dataset, reaching 192 cm. When considering the distribution of the maximum values each year, there's a hint of a potential trend in the data. Whether extreme values are stationary or not will be investigated in (D) using likelihood ratio test.
 
-(B) We are end of 2009 and would like to predict the yearly maximum values over the next 13 years (from 2010 to 2022). A naive approach consists of fitting a linear model on the observed yearly maxima and predict their values for 2010-2022. Proceed to this prediction and provide confidence intervals.
+## (b) We are end of 2009 and would like to predict the yearly maximum values over the next 13 years (from 2010 to 2022). A naive approach consists of fitting a linear model on the observed yearly maxima and predict their values for 2010-2022. Proceed to this prediction and provide confidence intervals.
 
 ```{r}
 # Create linear model 
@@ -42,7 +42,7 @@ mod1_predict
 
 As anticipated, the simple approach leads to poor predictions, with confidence intervals spanning from 124 to 146. The main reason for this lackluster performance is the violation of key assumptions in linear modeling when dealing with extreme values, such as: linearity, homoescedasticity and increased sensitivity to outliers. Consequently, we will turn to specialized models rooted in the realm of extreme value theory to address these challenges more effectively.
 
-(C) Represent in the same graph the predicted yearly max values for the period 2010-2022, their pointwise confidence bounds and the observed values greater than 140 cm from the table below.
+## (c) Represent in the same graph the predicted yearly max values for the period 2010-2022, their pointwise confidence bounds and the observed values greater than 140 cm from the table below.
 
 ```{r, warning = FALSE}
 
@@ -86,7 +86,7 @@ As previously noted and showcased in the plot, the predictions of extreme values
 
 To address these limitations, we are turning to the Generalized Extreme Value (GEV) distribution, a more suitable approach for modeling extreme events.
 
-(D) Fit a GEV a with constant parameters to the historical yearly max values. Fit a GEV with time varying location parameter. Compare the two embedded models using likelihood ratio test (LRT). Show diagnostic plots.
+## (d) Fit a GEV a with constant parameters to the historical yearly max values. Fit a GEV with time varying location parameter. Compare the two embedded models using likelihood ratio test (LRT). Show diagnostic plots.
 
 ```{r}
 ########################################## extRemes ##########################################
@@ -117,7 +117,7 @@ Next, we aimed to fit a GEV model with time-varying location parameters. We expl
 
 On the other hand, the harmonic function, which is often used to model periodic phenomena, yielded a different outcome. It allowed us to reject the null hypothesis of the likelihood ratio test, indicating that the GEV model with time-varying location parameters was a better fit. This result suggested that our maximum values displayed non-stationary behavior.
 
-(E) Add if necessary a time varying scale and or shape GEV parameter. Select the best model according to LRT.
+## (e) Add if necessary a time varying scale and or shape GEV parameter. Select the best model according to LRT.
 
 ```{r}
 # Fit a GEV model with time-varying scale 
@@ -133,7 +133,7 @@ lrt_result <- lr.test(gev_time_varying_location_shape, gev_time_varying_scale_sh
 
 After comparing the AIC of the models above, it aprears that the best models are the "gev_time_varying_location_shape" and "gev_time_varying_scale_shape_location", for which we did the LRT test. it shows us that the best model is the less complex one: the "gev_time_varying_location_shape".
 
-(F) Predict the 13-years return level, each year from 2010 to 2022.
+## (f) Predict the 13-years return level, each year from 2010 to 2022.
 
 ```{r}
 return_levels_df <- data.frame(return_level = numeric())  # Create an empty data frame with a column "return_level"
@@ -187,8 +187,7 @@ lines(1:13, rtu, lty = 1)
 
 ```
 
-(F) Represent in the same graph your predictions of the 13-years return levels, their pointwise confidence intervals, the predicted yearly max values from the linear model and the observed values greater than 140 cm from the table below.
-
+## (h) Represent in the same graph your predictions of the 13-years return levels, their pointwise confidence intervals, the predicted yearly max values from the linear model and the observed values greater than 140 cm from the table below.
 
 ```{r}
 rlci$Year = c(2010:2022)
@@ -201,9 +200,7 @@ interactive_venice_plot %>%
 
 Here, we can observe a trend slowly increasing from the predicted values. However, there are a few problems with the method we used. Indeed, the confidence intervals are way too close to the return level, giving us bounds which are way too narrow to observe anything significant.
 
-
-(I)Broadly speaking, each year, there is a chance of 1/13 that the observed value is above the 13- years return level. Comment the results for both the linear model prediction and GEV approach. Note that 12 of the 20 events occurred in the 21st century.
-
+## (i) Broadly speaking, each year, there is a chance of 1/13 that the observed value is above the 13- years return level. Comment the results for both the linear model prediction and GEV approach. Note that 12 of the 20 events occurred in the 21st century.
 
 The main issue we see is that the observed values from 2010 to 2022 are much higher than the expected return level. This indicates that the models we are using are crucially underestimating how fast the sea level is currently rising, most notably the extreme values.
 
@@ -211,6 +208,142 @@ The linear model predictions did not give us something reliable enough, as it di
 
 the return levels from the GEV model are giving us better results overall, but still far from the reality. If we imagine similarly wide confidence intervals for the GEV (ignoring the limitations we had) compared to the linear model, we could potentially have up to 6/8 values inside its bounds, which would be somewhat good, except for the two highest values (12/11/2019 and 22/11/2022), which are on a scope that wasn't even imagined by the model.
 
-
 In conclusion, the models we used until now were all incomplete, and could not predict the massive change the sea levels underwent, most notably in the latest 3 years where the values attained heights never seen before. This event can be explained through the effects of global warming, accelerating the pace at which the sea level rises worldwide.
 
+# Part 2: Nuclear reactors
+
+## (a) Read in the data. Display a time series plot of the water level across the data range and try to identify times of highest levels.
+
+```{r time series plot}
+# Load the data
+load(here::here("data/niveau.Rdata"))
+
+# Convert to Date format
+niveau$Zeitstempel <- as.Date(niveau$Zeitstempel)
+niveau$Zeitpunkt_des_Auftretens <- as.Date(niveau$Zeitpunkt_des_Auftretens)
+
+# Identifying points above the threshold
+threshold <- 328
+above_threshold <- niveau[niveau$Wert > threshold, ]
+
+# Create a base plot
+p <- plot_ly(data = niveau, x = ~Zeitstempel, y = ~Wert, type = 'scatter', mode = 'lines',
+             name = 'Water Level', hoverinfo = 'x+y')
+
+# Add points above the threshold
+p <- add_trace(p, data = above_threshold, x = ~Zeitstempel, y = ~Wert, mode = 'markers',
+               marker = list(color = 'red', size = 10), name = 'Above Threshold')
+
+# Customize layout
+p <- layout(p, title = 'Time Series Plot of Water Levels',
+            xaxis = list(title = 'Date'),
+            yaxis = list(title = 'Water Level (m)'))
+
+# Show the plot
+p
+
+```
+
+To pinpoint the periods with the highest water levels, we've established a threshold of 327 meters (95% quantile). Upon analysis, the peak water level was observed in August 2007, surpassing this predefined threshold, with a value of 329.32 meters. Furthermore, in July 2021, there were five instances where the water levels exceeded the established threshold of 327 meters.
+
+## (b) Now display a histogram of the water levels. What do you observe about the distribution?
+
+```{r}
+# Plot histogram with custom axis
+hist(niveau$Wert, breaks = 30, col = "skyblue", xlab = "Water Level (m)", 
+     main = "Histogram of Water Levels", xaxt = 'n')  # Turn off default x-axis
+
+# Adding a line for mean
+mean_value <- mean(niveau$Wert)
+abline(v = mean_value, col = "red", lwd = 2)
+
+# Adding custom x-axis with decimals
+axis(1, at = seq(floor(min(niveau$Wert)), ceiling(max(niveau$Wert)), by = 0.5), las = 2)
+
+# Adding a legend
+legend("topright", legend = paste("Mean =", round(mean_value, 2)), 
+       col = "red", lwd = 2)
+
+
+```
+
+The histogram reveals a right-skewed distribution, indicating a higher frequency of lower water level readings and a gradual decrease in frequency as the levels rise. Most of the observed water levels concentrate below 327 meters. Notably, the distribution's tail extends to the right, suggesting infrequent occurrences of substantially elevated water levels. These exceptional values could represent sporadic episodes of extreme water conditions.
+
+## (c) Explain how you would model the high water levels using a peaks-over-threshold approach.
+
+The peaks-over-threshold (POT) approach is a statistical method used to model extreme values in a dataset. It focuses on the tail of the distribution, where the extreme events reside. To model high water levels using the POT approach, I would follow these steps:
+
+1.  **Select a threshold**: choose an appropriate threshold above which water level readings are considered extreme and above which the plot is roughly linear. This threshold should be high enough to exclude mundane variations but not so high that you have too few data points to model accurately.
+
+2.  **Extracting exceedances**: once the threshold is set, identify all the data points that exceed it. These are the "peaks" you will analyze. Use the mean excess plot.
+
+3.  **Fitting a Distribution**: fit a Generalized Pareto Distribution (GPD) to the exceedances. The fitting can be done using maximum likelihood estimation or Bayesian methods.
+
+4.  **Parameter Estimation**: which are the shape parameter (kappa), the scale parameter (sigma), and the location parameter (theta). These parameters define the behavior of the distribution's tail.
+
+5.  **Model Diagnostics**: after fitting the model, perform diagnostic checks to ensure that the GPD provides a good fit to the data: analyzing residual plots, conducting goodness-of-fit tests, and using plots comparing the empirical and theoretical exceedance probabilities.
+
+6.  **Clustering:** apply the Ferro-Segers estimate, using the \*\*\`extremalindex\`\*\* function in R, counts exceedances of a high threshold within time windows. A high extremal index (\\\>1) suggests clustering of exceedances, indicating a need for declustering.
+
+7.  **Estimating Return Levels**: estimate high quantiles (return levels) and their corresponding return periods. The return level is the value that is expected to be exceeded once every specific period (e.g., a 100-year flood level).
+
+8.  **Assessing Uncertainty**: confidence intervals for the return levels can be constructed, use `confint`.
+
+## (d) Comment on the aspect of clustering of extremes. How do you propose to measure and deal with clustering of the daily water levels?
+
+Clustering of extremes refers to the tendency of extreme events to occur in sequences or bursts rather than being uniformly distributed over time. This is particularly relevant in environmental data, such as water levels, where extreme events can be dependent on preceding conditions (ex: Chaux-de-fonds heavy rainfall during 3 days).
+
+To measure and deal with clustering in daily water levels, we propose the following steps:
+
+**Measuring clustering**:
+
+1.  **Run Tests for Serial Dependence**: use statistical tests like the autocorrelation function (ACF), or the Ljung-Box test to detect serial dependence in the data above the threshold.
+2.  **Identify Clusters**: use the `extremalindex` function to determine whether. The "declustering" period---how much time must pass without an exceedance before a new cluster is defined---needs to be determined.
+3.  **Declustering Methods**: apply declustering algorithms to separate the data into independent clusters of exceedances and intervening non-exceedances. A straightforward declustering method, such as iterating through the data with a for loop, to identify and group extreme precipitation events by their occurrence in distinct years, is simple and effective. It separates data into clusters of exceedances and non-exceedances, providing a clear delineation of extreme events.
+
+**Dealing with clustering:**
+
+1.  **Declustering the Data**: before fitting a model to the exceedances, decluster the data to remove the influence of serial dependence. Each cluster may be represented by its maximum value.
+2.  **Modeling with Clustering**
+3.  **Intensity Measures**: such as the mean number of exceedances per cluster or the average duration of clusters into the risk assessment.
+4.  **Time-Varying Thresholds**: consider dynamic thresholds that adjust for seasonality or other known factors that influence clustering, rather than a fixed threshold.
+
+## (e) Perform the analysis you suggest in c) and d) and compute the 50- and 100-year return levels. Explain your choice of threshold and provide an estimate of uncertainty for the return levels. Note: take care to compute the return level in yearly terms.
+
+```{r, warning = False}
+# 1. Select Threshold: using mean excess plot and quantile
+meplot(niveau$Wert, at = pretty(niveau$Wert, n = 10), labels = format(pretty(niveau$Wert, n = 10), nsmall = 1))
+mrlplot(niveau$Wert,main="Mean Residual Life Plot")
+quantile(niveau$Wert, 0.95) # 327
+threshold_clustering <- 327 # select 327 as the threshold
+# 2. Extract Exceedances
+exceedances <- niveau$Wert[niveau$Wert > threshold_clustering]
+# 3. Fit distribution over a range of thresholds and parameter estimation: GPD
+threshrange.plot(niveau$Wert, r = c(325, 329), nint = 16) # Chose 327
+fitMLE <- fevd(as.vector(exceedances), method = "MLE",  type="GP", threshold = threshold_clustering)
+# 4. Model Diagnostics
+plot(fitMLE)
+# 5. Check if there is clustering of extremes (Ferro-Segers estimate)
+extremalindex(niveau$Wert, threshold_clustering) # 1 / 0.156 = 6.4; we have a very large value, indicating a need to decluster
+# 6. Declustering 
+
+
+
+
+
+
+# 7. Estimate Return Levels
+# Assuming 1 observation per day, we prefer using fpot from evd
+rl_mle_evd_50 <- fpot(as.vector(niveau$Wert), threshold = threshold_clustering, npp = 365.25, mper=50)
+rl_mle_evd_100 <- fpot(as.vector(niveau$Wert), threshold = threshold_clustering, npp = 365.25, mper=100)
+plot(rl_mle_evd_50) ; plot(rl_mle_evd_100, main = "100-Year Return Level")
+# Plotting the 50-year return level
+par(mfrow = c(2, 2))
+plot(rl_mle_evd_50)
+title(main = "50-Year Return Level", line = -1, col.main = "red")
+plot(rl_mle_evd_100)
+title(main = "100-Year Return Level", line = -1, col.main = "red")
+par(mfrow = c(1, 1))
+# Resetting the plotting layout to default
+
+```

@@ -26,7 +26,8 @@ packages <- c(
   "dygraphs",
   "gridExtra",
   "readr",
-  "lubridate")
+  "lubridate",
+  "evd")
 
 # Check if each package is available, and install it if not
 for (package in packages) {
