@@ -92,3 +92,115 @@ as.numeric(1/(1-pgev(70, location=mod3$results$par[1], scale=mod3$results$par[2]
 mod4 <- lm(rain.ann.max~unique.years)
 # making predictions for 5 years
 predict.lm(mod4,newdata=data.frame("unique.years"=c(49:53)),se=T)
+
+
+
+
+######################################################################################################################
+library(xts)
+library(extRemes)
+library(RCurl)
+# get data from eHYD
+
+# adapted from example available at: https://www.gis-blog.com/eva-intro-3/
+
+read.ehyd <- function(ehyd_url) {
+  # separate the header, open the connection with correct encoding
+  con <- url(ehyd_url, encoding = "latin1")
+  header <- readLines(con, n=50)
+  lines.header <- grep("Werte:", header, fixed = T)
+  # read data, define time and values
+  infile <- read.csv2(con, header = F, skip = lines.header,
+                      col.names = c("time", "value"),
+                      colClasses = c("character", "numeric"),
+                      na.strings = "Lücke",
+                      strip.white = TRUE, as.is = TRUE, fileEncoding = "latin1")
+  infile$time <- as.POSIXct(infile$time, format = "%d.%m.%Y %H:%M:%S")
+  # return time series object of class xts
+  return(xts(infile$value, order.by = infile$time))
+}
+
+ehyd_url <- "http://ehyd.gv.at/eHYD/MessstellenExtraData/nlv?id=105700&file=2"
+precipitation_xts <- read.ehyd(ehyd_url)
+precipitation_xts <- precipitation_xts[-14611,]
+
+# Visualise the data
+plot(precipitation_xts)
+hist(precipitation_xts, breaks = 30)
+# seems to be right-skewed 
+
+# MRL plot: 
+mrlplot(precipitation_xts, main="Mean Residual Life Plot")
+# Find the lowest threshold where the plot is somewhat linear
+
+# fitting the GPD model over a range of thresholds
+threshrange.plot(precipitation_xts, r = c(30, 45), nint = 16)
+# nint is the number of threshold, r the range of the thresholds 
+# ismev implementation is faster:
+ismev::gpd.fitrange(precipitation_xts, umin=30, umax=45, nint = 16)
+# set threshold
+th <- 40
+
+# Visualise the threshold 
+plot(as.vector(precipitation_xts), type = 'l')
+abline(h=th,col=2)
+
+# maximum likelihood estimation
+pot_mle <- fevd(as.vector(precipitation_xts), method = "MLE", type="GP", threshold=th)
+# diagnostic plots
+plot(pot_mle)
+rl_mle <- return.level(pot_mle, conf = 0.05, return.period= c(2,5,10,20,50,100), do.ci=T)
+
+# alternative using evd 
+pot_mle_evd <- fpot(as.vector(precipitation_xts), threshold = th, npp = 365.25)
+pot_mle_evd2 <- fpot(as.vector(precipitation_xts), threshold = th)
+par(mfrow = c(2,2))
+plot(pot_mle_evd)
+confint(profile(pot_mle_evd))
+
+# return levels with evd, e.g. 50-year
+rl_mle_evd <- fpot(as.vector(precipitation_xts), threshold = th, npp = 365.25, mper=50)
+plot(rl_mle_evd)
+# return level plots
+par(mfcol=c(1,1))
+# return level plot w/ MLE
+plot(pot_mle, type="rl",
+     main="Return Level Plot for Oberwang w/ MLE",
+     ylim=c(0,200), pch=16)
+loc <- as.numeric(return.level(pot_mle, conf = 0.05, return.period=50))
+segments(50, 0, 50, loc, col= 'midnightblue',lty=6)
+segments(0.01,loc,50, loc, col='midnightblue', lty=6)
+
+
+# Check if there is clustering of extremes (Ferro-Segers estimate)
+exi(precipitation_xts, u = 35)
+# seems to indicate that there slighty is some level of clustering, but weak. 
+
+pot_decl <- fpot(as.vector(precipitation_xts), threshold = th, npp = 365.25, cmax = TRUE, ulow = th, mper = 50)
+# some changes in the estimates because we have less data, if there is clustering of extremes (expected)
+confint(profile(pot_decl))
+# compare with
+confint(profile(rl_mle_evd))
+
+plot(pot_decl)
+
+# 
+# decluster and obtain plot, according to years for example
+years <- c()
+k <- 1
+for(i in 1:nrow(precipitation_xts)){
+  if(is.na(precipitation_xts[i])){
+    next
+  }else{
+    years[k] <- year(precipitation_xts[i])
+    k <- k+1
+  }
+}
+years <- years-1999
+
+decl1 <- decluster(as.vector(precipitation_xts), threshold=th, groups=years, na.action=na.omit)
+decl1
+plot(decl1)
+
+
+## mini example of bootstrap 

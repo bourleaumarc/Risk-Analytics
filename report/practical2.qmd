@@ -299,7 +299,7 @@ To measure and deal with clustering in daily water levels, we propose the follow
 
 1.  **Run Tests for Serial Dependence**: use statistical tests like the autocorrelation function (ACF), or the Ljung-Box test to detect serial dependence in the data above the threshold.
 2.  **Identify Clusters**: use the `extremalindex` function to determine whether. The "declustering" period---how much time must pass without an exceedance before a new cluster is defined---needs to be determined.
-3.  **Declustering Methods**: apply declustering algorithms to separate the data into independent clusters of exceedances and intervening non-exceedances. A straightforward declustering method, such as iterating through the data with a for loop, to identify and group extreme precipitation events by their occurrence in distinct years, is simple and effective. It separates data into clusters of exceedances and non-exceedances, providing a clear delineation of extreme events.
+3.  **Declustering Methods**: apply declustering algorithms to separate the data into independent clusters of exceedances and intervening non-exceedances. A straightforward declustering method, is to use a for loopto identify and group extreme precipitation events by their occurrence in distinct years,and then use the `decluster` function from `extRemes` package.
 
 **Dealing with clustering:**
 
@@ -311,32 +311,45 @@ To measure and deal with clustering in daily water levels, we propose the follow
 ## (e) Perform the analysis you suggest in c) and d) and compute the 50- and 100-year return levels. Explain your choice of threshold and provide an estimate of uncertainty for the return levels. Note: take care to compute the return level in yearly terms.
 
 ```{r, warning = False}
-# 1. Select Threshold: using mean excess plot and quantile
+# 1. Select Threshold: using mean residual life plot, quantile and threshrange.plot
+plot(niveau$Wert)
 meplot(niveau$Wert, at = pretty(niveau$Wert, n = 10), labels = format(pretty(niveau$Wert, n = 10), nsmall = 1))
 mrlplot(niveau$Wert,main="Mean Residual Life Plot")
 quantile(niveau$Wert, 0.95) # 327
+threshrange.plot(niveau$Wert, r = c(325, 329), nint = 16) # Choose 327
 threshold_clustering <- 327 # select 327 as the threshold
 # 2. Extract Exceedances
 exceedances <- niveau$Wert[niveau$Wert > threshold_clustering]
 # 3. Fit distribution over a range of thresholds and parameter estimation: GPD
-threshrange.plot(niveau$Wert, r = c(325, 329), nint = 16) # Chose 327
 fitMLE <- fevd(as.vector(exceedances), method = "MLE",  type="GP", threshold = threshold_clustering)
 # 4. Model Diagnostics
 plot(fitMLE)
 # 5. Check if there is clustering of extremes (Ferro-Segers estimate)
-extremalindex(niveau$Wert, threshold_clustering) # 1 / 0.156 = 6.4; we have a very large value, indicating a need to decluster
+extremalindex(niveau$Wert, threshold_clustering) # 1 / 0.156 = 6.4; we have a very large value (which is very logical as we are dealing with precipitation data), indicating a need to decluster
 # 6. Declustering 
-
-
-
-
-
-
+years <- c()
+k <- 1
+for(i in 1:nrow(niveau)){
+  if(is.na(niveau$Wert[i])){
+    next
+  }else{
+    years[k] <- year(niveau$Zeitstempel[i])
+    k <- k+1
+  }
+}
+years <- years-1999
+decl1 <- decluster(as.vector(niveau$Wert), threshold = threshold_clustering, groups=years, na.action=na.omit)
+plot(decl1)
+decl1
+# Add years and decl1 to niveau data frame 
+niveau$years <- years
+niveau$decl1 <- decl1
 # 7. Estimate Return Levels
 # Assuming 1 observation per day, we prefer using fpot from evd
 rl_mle_evd_50 <- fpot(as.vector(niveau$Wert), threshold = threshold_clustering, npp = 365.25, mper=50)
 rl_mle_evd_100 <- fpot(as.vector(niveau$Wert), threshold = threshold_clustering, npp = 365.25, mper=100)
 plot(rl_mle_evd_50) ; plot(rl_mle_evd_100, main = "100-Year Return Level")
+rl_mle <- return.level(fitMLE, conf = 0.05, return.period= c(2,5,10,20,50,100), do.ci=T)
 # Plotting the 50-year return level
 par(mfrow = c(2, 2))
 plot(rl_mle_evd_50)
@@ -344,6 +357,108 @@ title(main = "50-Year Return Level", line = -1, col.main = "red")
 plot(rl_mle_evd_100)
 title(main = "100-Year Return Level", line = -1, col.main = "red")
 par(mfrow = c(1, 1))
-# Resetting the plotting layout to default
+# 8. Assessing uncertainty
+```
+This threshold was determined by examining the mean residual life plot, where 327 meters emerged as a critical point where the mean excess values begin to show significant variation. This value represents a transition in the data, marking where the mean excess values start to widen noticeably. This observation is further substantiated by the fact that 327 meters corresponds to the 95th percentile of your dataset, indicating it is a level exceeded by only the top 5% of your observations. 
+
+## (f) Explain the drawbacks and advantages of using a block maxima method instead of the one used in c)-e).
+
+# Part 3: Night temperatures in Lausanne
+
+## (a) Read in the data for the daily night maximum temperatures in Lausanne. Subset the summer months (June to September).
+```{r}
+night_max <- read_csv(here::here("data/nightmax.csv"))  
+night_min <- read_csv(here::here("data/nightmin.csv"))
+# Remove rows with missing values
+night_max <- na.omit(night_max)
+night_min <- na.omit(night_min)
+# Subset the data for summer months (June to September)
+summer_night_max <- night_max[format(night_max$date,"%m") %in% c("06", "07", "08", "09"), ] 
+```
+## (b) Assess whether extremes of the subsetted series in (a) occur in cluster.
+```{r question 3b}
+# Visualise the data: plot and histogram of the maximum temperatures for the summer months 
+plot(summer_night_max$date, summer_night_max$night.max, type = "b", xlab = "Date", ylab = "Night Max Temperature", main = "Summer Night Max Temperatures")
+hist(summer_night_max$night.max, breaks = 30, xlab = "Night Max", ylab = "Frequency", main = "Histogram of summer night max temperatures")
+# Have more information about the distribution 
+min(summer_night_max$night.max) ; mean(summer_night_max$night.max); max(summer_night_max$night.max)
+quantile(summer_night_max$night.max, 0.95) # doesn't seem to be very right-skewed 
+# Choose the threshold using the mrlplot()
+mrlplot(summer_night_max$night.max, main="Mean residual")
+threshrange.plot(summer_night_max$night.max, r= c(20,30), nint = 20) # we are going to use 30 
+th_1 <- 30 # with this threshold we would have 5% of observations: 400 so seems good. 
+# Visualise the threshold 
+plot(summer_night_max$night.max, type = 'l')
+abline(h=th_1,col=2) # looks good 
+# Assess the threshold
+pot_mle <- fevd(summer_night_max$night.max, method = "MLE", type="GP", threshold=th_1) 
+plot(pot_mle) 
+rl_mle <- return.level(pot_mle, conf = 0.05, return.period= c(2,5,10,20,50,100), do.ci=T) # diagnostic plot looks good and confidence interval become wider the longer the return level, which make sense 
+# Return level plots with MLE 
+par(mfcol=c(1,1))
+plot(pot_mle, type="rl",
+     main="Return Level Plot for Oberwang w/ MLE",
+    ylim=c(0,200), pch=16)
+loc <- as.numeric(return.level(pot_mle, conf = 0.05, return.period=50))
+segments(50, 0, 50, loc, col= 'midnightblue',lty=6)
+segments(0.01,loc,50, loc, col='midnightblue', lty=6)
+# Assess wether extremes occur in a cluster using extremalindex()
+extremalindex(night_max$night.max, th_1) # 0.31 so 1/0.31 = 3.23 WE NEED TO DECLUSTER 
+
 
 ```
+We have an approximate cluster size of 3.23, indicating that extremes values are clustered together. Therefore, we need to decluster. 
+
+## (c) Decluster the data from (a) using a suitable threshold. Plot the resulting declustered data. (Hint: you may want to use the extRemes package.)
+```{r question 3c}
+# We need to create a vector of size night_max that stores the year. 
+years_part3 <- numeric(nrow(night_max))
+
+k <- 1
+for (i in 1:nrow(night_max)) {
+  if (is.na(night_max$night.max[i])) {
+    next
+  } else {
+    years[k] <- year(as.Date(night_max$date[i]))
+    k <- k + 1
+  }
+}
+years_part3 <- years-1999 # we don't want the year but the index of the years
+# Use decluster function of extRemes 
+decl1 <- decluster(night_max$night.max, threshold=th_1, groups=years_part3, na.action=na.omit) # vector and groups need to have the same size 
+decl1 # we have 71 clusters 
+plot(decl1) # shows in grey the points that are not retained in the selection 
+
+```
+## (d) Fit a GPD to the data, both raw and declustered. Assess the quality of the fit. 
+```{r}
+# Use fevd of the normal and declustered 
+gpd_raw <- fevd(night_max$night.max, threshold = th_1, type = "GP")
+gpd_declustered <- fevd(decl1, threshold = th_1, type = "GP")
+plot(gpd_raw)
+plot(gpd_declustered)
+```
+
+## (e) Repeat the above analysis for the negatives of the daily nightly minimum temperatures for the
+winter months (November-February).
+```{r}
+# Subset the winter months (November to February)
+winter_night_min <- night_min[format(night_min$date, "%m") %in% c("11", "12", "01", "02"), ]
+# We first do the plot and histogram of the negatives of the daily nightly minimum temperatures for the winter months (November-February).
+plot(winter_night_min$date, winter_night_min$night.min, type = "l", xlab = "Date", ylab = "Night Min Temperature", main = "Winter Night Min Temperatures")
+hist(winter_night_min$night.min, breaks = 30, xlab = "Date", ylab = "Night Min Temperature", main = "Winter Night Min Temperatures frequency")
+min(winter_night_min$night.min); mean(winter_night_min$night.min); max(winter_night_min$night.min)
+quantile(winter_night_min$night.min, 0,95)
+
+mrlplot(winter_night_min$night.min, main="Mean residual")
+threshrange.plot(winter_night_min$night.min, r= c(-5,15), nint =20)
+
+mean(winter_night_min$night.min)
+
+max(summer_night_max$night.max)
+quantile(summer_night_max$night.max, 0,95)
+mean(summer_night_max$night.max)
+
+```
+
+

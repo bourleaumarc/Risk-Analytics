@@ -27,7 +27,8 @@ packages <- c(
   "gridExtra",
   "readr",
   "lubridate",
-  "evd")
+  "evd",
+  "xts")
 
 # Check if each package is available, and install it if not
 for (package in packages) {
