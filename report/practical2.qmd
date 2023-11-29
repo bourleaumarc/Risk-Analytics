@@ -348,9 +348,8 @@ niveau$decl1 <- decl1
 # Assuming 1 observation per day, we prefer using fpot from evd
 rl_mle_evd_50 <- fpot(as.vector(niveau$Wert), threshold = threshold_clustering, npp = 365.25, mper=50)
 rl_mle_evd_100 <- fpot(as.vector(niveau$Wert), threshold = threshold_clustering, npp = 365.25, mper=100)
-plot(rl_mle_evd_50) ; plot(rl_mle_evd_100, main = "100-Year Return Level")
 rl_mle <- return.level(fitMLE, conf = 0.05, return.period= c(2,5,10,20,50,100), do.ci=T)
-# Plotting the 50-year return level
+# Plotting the 50-year and 100-year return level
 par(mfrow = c(2, 2))
 plot(rl_mle_evd_50)
 title(main = "50-Year Return Level", line = -1, col.main = "red")
@@ -411,21 +410,21 @@ We have an approximate cluster size of 3.23, indicating that extremes values are
 
 ## (c) Decluster the data from (a) using a suitable threshold. Plot the resulting declustered data. (Hint: you may want to use the extRemes package.)
 ```{r question 3c}
-# We need to create a vector of size night_max that stores the year. 
-years_part3 <- numeric(nrow(night_max))
-
+# We need to create a vector of size summer_night_max that stores the year. 
+years_part3 <- c()
 k <- 1
-for (i in 1:nrow(night_max)) {
-  if (is.na(night_max$night.max[i])) {
+for (i in 1:nrow(summer_night_max)) {
+  if (is.na(summer_night_max$night.max[i])) {
     next
   } else {
-    years[k] <- year(as.Date(night_max$date[i]))
+    years_part3[k] <- year(summer_night_max$date[i])
     k <- k + 1
   }
 }
-years_part3 <- years-1999 # we don't want the year but the index of the years
+years_part3 <- years_part3-1999
+
 # Use decluster function of extRemes 
-decl1 <- decluster(night_max$night.max, threshold=th_1, groups=years_part3, na.action=na.omit) # vector and groups need to have the same size 
+decl1 <- decluster(summer_night_max$night.max, threshold=th_1, groups=years_part3, na.action=na.omit) # vector and groups need to have the same size 
 decl1 # we have 71 clusters 
 plot(decl1) # shows in grey the points that are not retained in the selection 
 
@@ -433,14 +432,17 @@ plot(decl1) # shows in grey the points that are not retained in the selection
 ## (d) Fit a GPD to the data, both raw and declustered. Assess the quality of the fit. 
 ```{r}
 # Use fevd of the normal and declustered 
-gpd_raw <- fevd(night_max$night.max, threshold = th_1, type = "GP")
+gpd_raw <- fevd(summer_night_max$night.max, threshold = th_1, type = "GP")
 gpd_declustered <- fevd(decl1, threshold = th_1, type = "GP")
+par(mfrow = c(2, 2))
 plot(gpd_raw)
+title(main = "GPD fitted to raw data", line = 1, col.main = "red")
 plot(gpd_declustered)
+title(main = "GPD fitted to declustered data", line = 1, col.main = "red")
+par(mfrow = c(1, 1))
 ```
 
-## (e) Repeat the above analysis for the negatives of the daily nightly minimum temperatures for the
-winter months (November-February).
+## (e) Repeat the above analysis for the negatives of the daily nightly minimum temperatures for the winter months (November-February).
 ```{r}
 # Subset the winter months (November to February)
 winter_night_min <- night_min[format(night_min$date, "%m") %in% c("11", "12", "01", "02"), ]
