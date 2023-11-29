@@ -143,7 +143,7 @@ for (i in 71:83) {
   scale <- gev_time_varying_location_shape$results$par[3]
   shape <- gev_time_varying_location_shape$results$par[4] + gev_time_varying_location_shape$results$par[5] * i
 
-  return_level <- qgev(1 - 1/13, location = loc, scale = scale, shape = shape)
+  return_level <- qgev(1 - 1/13, loc = loc, scale = scale, shape = shape)
   return_levels_df <- rbind(return_levels_df, data.frame(return_level = return_level))
 }
 
@@ -155,6 +155,10 @@ print(return_levels_df)
  
 
 ```
+
+The obtained return levels are quite stable, slowly increasing over time from 148 to 149.
+
+#(g) Calculate confidence bands for these predictions
 
 ```{r}
 rlci<- data.frame(return_level = numeric(), Lower_CI = numeric(), Upper_CI = numeric())
@@ -169,7 +173,7 @@ for(j in 1:B){
     
   fit <- gev.fit(data)
   
-  rt1[j,i] <- qgev(1-1/13, location = fit$mle[1], scale = fit$mle[2], shape = fit$mle[3])
+  rt1[j,i] <- qgev(1-1/13, loc = fit$mle[1], scale = fit$mle[2], shape = fit$mle[3])
   
   }}
 
@@ -186,6 +190,7 @@ lines(1:13, rtl, lty = 2, col = 2)
 lines(1:13, rtu, lty = 1)
 
 ```
+Here, we can observe a trend slowly increasing from the predicted values. However, there is a noticeable problem with the method we used. Indeed, the confidence intervals are way too close to the return level, giving us bounds which are too narrow to observe anything significant. A more complete analysis would require a de-trending of the bootstrapped values, but we were limited by the time allowed to complete this work.
 
 ## (h) Represent in the same graph your predictions of the 13-years return levels, their pointwise confidence intervals, the predicted yearly max values from the linear model and the observed values greater than 140 cm from the table below.
 
@@ -197,8 +202,6 @@ interactive_venice_plot %>%
   add_lines(data = rlci, x = ~Year, y = ~return_level, color = I("red"), name = "Predicted values (model)") %>%
   add_ribbons(data = rlci, x = ~Year, ymin = ~Lower_CI, ymax = ~Upper_CI, color = I("red"), name  = "Confidence Interval (model)")
 ```
-
-Here, we can observe a trend slowly increasing from the predicted values. However, there are a few problems with the method we used. Indeed, the confidence intervals are way too close to the return level, giving us bounds which are way too narrow to observe anything significant.
 
 ## (i) Broadly speaking, each year, there is a chance of 1/13 that the observed value is above the 13- years return level. Comment the results for both the linear model prediction and GEV approach. Note that 12 of the 20 events occurred in the 21st century.
 
