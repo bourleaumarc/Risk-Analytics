@@ -91,8 +91,10 @@ title(main = "GPD fitted to raw data", line = 1, col.main = "red")
 plot(gpd_declustered)
 title(main = "GPD fitted to declustered data", line = 1, col.main = "red")
 par(mfrow = c(1, 1))
-```
+# Assess the fit: AIC for raw is 369, AIC for declustered data is 193
 
+```
+For the raw data, the adherence of the points to the 1:1 line in the Quantile-Quantile (Q-Q) plot suggests a superior fit compared to the declustered data. Furthermore, the lower AIC value for the raw data implies that it provides a more efficient balance between model complexity and goodness of fit. This indicates that the model for the raw data may be more appropriate for capturing the underlying distribution of the dataset.
 ## (e) Repeat the above analysis for the negatives of the daily nightly minimum temperatures for the winter months (November-February).
 ```{r}
 # Subset the winter months (November to February)

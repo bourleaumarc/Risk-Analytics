@@ -135,7 +135,7 @@ After comparing the AIC of the models above, it aprears that the best models are
 
 ## (f) Predict the 13-years return level, each year from 2010 to 2022.
 
-```{r}
+```{r, include= FALSE}
 return_levels_df <- data.frame(return_level = numeric())  # Create an empty data frame with a column "return_level"
 
 for (i in 71:83) {
@@ -158,9 +158,9 @@ print(return_levels_df)
 
 The obtained return levels are quite stable, slowly increasing over time from 148 to 149.
 
-#(g) Calculate confidence bands for these predictions
+## (g) Calculate confidence bands for these predictions
 
-```{r}
+```{r, include=FALSE}
 rlci<- data.frame(return_level = numeric(), Lower_CI = numeric(), Upper_CI = numeric())
 B <- 200
 rt1 <- matrix(0, nrow=B, ncol=13)
@@ -313,7 +313,7 @@ To measure and deal with clustering in daily water levels, we propose the follow
 
 ## (e) Perform the analysis you suggest in c) and d) and compute the 50- and 100-year return levels. Explain your choice of threshold and provide an estimate of uncertainty for the return levels. Note: take care to compute the return level in yearly terms.
 
-```{r, warning = False}
+```{r, warning = FALSE}
 # 1. Select Threshold: using mean residual life plot, quantile and threshrange.plot
 plot(niveau$Wert)
 meplot(niveau$Wert, at = pretty(niveau$Wert, n = 10), labels = format(pretty(niveau$Wert, n = 10), nsmall = 1))
@@ -380,8 +380,14 @@ summer_night_max <- night_max[format(night_max$date,"%m") %in% c("06", "07", "08
 ## (b) Assess whether extremes of the subsetted series in (a) occur in cluster.
 ```{r question 3b}
 # Visualise the data: plot and histogram of the maximum temperatures for the summer months 
-plot(summer_night_max$date, summer_night_max$night.max, type = "b", xlab = "Date", ylab = "Night Max Temperature", main = "Summer Night Max Temperatures")
-hist(summer_night_max$night.max, breaks = 30, xlab = "Night Max", ylab = "Frequency", main = "Histogram of summer night max temperatures")
+summer_night_max$date_str <- format(summer_night_max$date, "%d %b %Y") 
+interactive_plot <- plot_ly(summer_night_max, x = ~date, y = ~night.max, type = 'scatter', mode = 'lines+markers',
+                            hoverinfo = 'text', text = ~paste('Date:', date_str, '<br>Temp:', night.max)) %>%
+  layout(title = "Summer Night Max Temperatures",
+         xaxis = list(title = "Date"),
+         yaxis = list(title = "Night Max Temperature"))
+interactive_plot
+hist(summer_night_max$night.max, breaks = 30, col = "skyblue", xlab = "Night Max", ylab = "Frequency", main = "Histogram of summer night max temperatures")
 # Have more information about the distribution 
 min(summer_night_max$night.max) ; mean(summer_night_max$night.max); max(summer_night_max$night.max)
 quantile(summer_night_max$night.max, 0.95) # doesn't seem to be very right-skewed 
@@ -443,27 +449,46 @@ title(main = "GPD fitted to raw data", line = 1, col.main = "red")
 plot(gpd_declustered)
 title(main = "GPD fitted to declustered data", line = 1, col.main = "red")
 par(mfrow = c(1, 1))
+# Assess the fit: AIC for raw is 369, AIC for declustered data is 193
 ```
+For the raw data, the adherence of the points to the 1:1 line in the Quantile-Quantile (Q-Q) plot suggests a superior fit compared to the declustered data. Furthermore, the lower AIC value for the raw data implies that it provides a more efficient balance between model complexity and goodness of fit. This indicates that the model for the raw data may be more appropriate for capturing the underlying distribution of the dataset.
 
 ## (e) Repeat the above analysis for the negatives of the daily nightly minimum temperatures for the winter months (November-February).
 ```{r}
 # Subset the winter months (November to February)
 winter_night_min <- night_min[format(night_min$date, "%m") %in% c("11", "12", "01", "02"), ]
-# We first do the plot and histogram of the negatives of the daily nightly minimum temperatures for the winter months (November-February).
-plot(winter_night_min$date, winter_night_min$night.min, type = "l", xlab = "Date", ylab = "Night Min Temperature", main = "Winter Night Min Temperatures")
-hist(winter_night_min$night.min, breaks = 30, xlab = "Date", ylab = "Night Min Temperature", main = "Winter Night Min Temperatures frequency")
+# Visualise the data: plot and histogram
+p <- ggplot(winter_night_min, aes(x = date, y = night.min)) +
+  geom_line() +  # This adds the line type plot
+  labs(x = "Date", y = "Night Min Temperature", title = "Winter Night Min Temperatures") +
+  theme_minimal()  # Optional: adds a minimal theme
+interactive_plot_winter <- ggplotly(p)
+interactive_plot_winter
+hist(winter_night_min$night.min, breaks = 30, col = "skyblue", xlab = "Date", ylab = "Night Min Temperature", main = "Winter Night Min Temperatures frequency")
+# Have more information about the distribution 
 min(winter_night_min$night.min); mean(winter_night_min$night.min); max(winter_night_min$night.min)
-quantile(winter_night_min$night.min, 0,95)
-
+quantile(winter_night_min$night.min, 0.95)
+# Choose the threshold using the mrlplot()
 mrlplot(winter_night_min$night.min, main="Mean residual")
 threshrange.plot(winter_night_min$night.min, r= c(-5,15), nint =20)
-
-mean(winter_night_min$night.min)
-
-max(summer_night_max$night.max)
-quantile(summer_night_max$night.max, 0,95)
-mean(summer_night_max$night.max)
-
+th_2 <- -9 
+# Visualise the threshold 
+plot(winter_night_min$night.min, type = 'l')
+abline(h=th_2,col=2) # looks good 
+# Assess the threshold
+pot_mle_2 <- fevd(winter_night_min$night.min, method = "MLE", type="GP", threshold=th_2) 
+plot(pot_mle_2) 
+rl_mle <- return.level(pot_mle_2, conf = 0.05, return.period= c(2,5,10,20,50,100), do.ci=T) # diagnostic plot looks good and confidence interval become wider the longer the return level, which make sense 
+# Return level plots with MLE 
+par(mfcol=c(1,1))
+plot(pot_mle_2, type="rl",
+     main="Return Level Plot for Oberwang w/ MLE",
+    ylim=c(0,200), pch=16)
+loc <- as.numeric(return.level(pot_mle_2, conf = 0.05, return.period=50))
+segments(50, 0, 50, loc, col= 'midnightblue',lty=6)
+segments(0.01,loc,50, loc, col='midnightblue', lty=6)
+# Assess wether extremes occur in a cluster using extremalindex()
+extremalindex(winter_night_min$night.min, th_2) # 0.00341so 1/0.00341 = 293
 ```
 
 
