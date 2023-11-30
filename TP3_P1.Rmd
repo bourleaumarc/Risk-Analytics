@@ -133,13 +133,38 @@ But we have different scales and it's not the perfect graph to highlight possibl
 (c) Test the correlation between these two pairs of series.
 
 ```{r}
+# Correlation between Zermatt and Montana Temperatures
+cor_Zermatt_Montana <- cor(Z$Zermatt, Z$Montana)
+cat("Correlation between Zermatt and Montana Temperatures:", cor_Zermatt_Montana, "\n")
+
+# Correlation between Montana Temperatures and NAO Index
+cor_Montana_NAO <- cor(Z$Montana, Z$NAO)
+cat("Correlation between Montana Temperatures and NAO Index:", cor_Montana_NAO, "\n")
 
 ```
+
+Here again, we see no significant correlation between temperatures and the NAO index.
 
 (d) Now concentrate on the extreme level and tail dependence. Represent χ and χ ̄ for two pairs of series (Montana vs Zermatt and Montana vs NAO). You may want to use the function chiplot of the package evd. What do you observe?
 
 ```{r}
 
+library(evd)
+
+# Create a data frame for Zermatt vs Montana Temperatures
+data_Zermatt_Montana <- data.frame(Zermatt = Z$Zermatt, Montana = Z$Montana)
+
+# Chi Plot - Zermatt vs Montana Temperatures
+chiplot(data_Zermatt_Montana, main1 = "Chi Plot - Zermatt vs Montana Temperatures")
+
+chipl
+# Create a data frame for Montana Temperatures vs NAO Index
+data_Montana_NAO <- data.frame(Montana = Z$Montana, NAO = Z$NAO)
+
+# Chi Plot - Montana Temperatures vs NAO Index
+chiplot(data_Montana_NAO, main1 = "Chi Plot - Montana Temperatures vs NAO Index")
+
 ```
+
 
 
