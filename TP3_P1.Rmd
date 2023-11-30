@@ -145,23 +145,10 @@ cat("Correlation between Montana Temperatures and NAO Index:", cor_Montana_NAO, 
 
 Here again, we see no significant correlation between temperatures and the NAO index.
 
-
 Transform the data because its time series (daily data)???
-```{r}
 
-# Calculate negative log returns for each index
-log_returns_Crans <- -diff(log(Z$Montana)) %>% na.omit()
-log_returns_Zermatt <- -diff(log(Z$Zermatt)) %>% na.omit()
-log_returns_NAO <- -diff(log(Z$NAO)) %>% na.omit()
+(d) Now concentrate on the extreme level and tail dependence. Represent χ and χ̄ for two pairs of series (Montana vs Zermatt and Montana vs NAO). You may want to use the function chiplot of the package evd. What do you observe? 
 
-log_returns_NAO
-log_returns_Zermatt
-log_returns_Crans
-
-```
-
-
-(d) Now concentrate on the extreme level and tail dependence. Represent χ and χ̄ for two pairs of series (Montana vs Zermatt and Montana vs NAO). You may want to use the function chiplot of the package evd. What do you observe? CALCULER LE X BAR ET X!!!
 
 ```{r}
 
@@ -182,4 +169,18 @@ chiplot(data_Montana_NAO, main1 = "Chi Plot - Montana Temperatures vs NAO Index"
 ```
 
 
+
+```{r}
+# Assuming your data is stored in a data frame called Z
+library(evd)
+
+# Pair 1: Zermatt vs. Montana
+pair_1_diff <- Z$Zermatt - Z$Montana
+chiplot(cbind(pair_1_diff, pair_1_diff^2))  # Only include differences and squared differences
+
+# Pair 2: Montana vs. NAO
+pair_2_diff <- Z$Montana - Z$NAO
+chiplot(cbind(pair_2_diff, pair_2_diff^2))  # Only include differences and squared differences
+
+```
 
