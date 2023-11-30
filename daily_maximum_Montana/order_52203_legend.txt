@@ -1,0 +1,39 @@
+Office fédéral de météorologie et de climatologie, MétéoSuisse
+Operation Center 1
+Postfach 257
+8058 Zürich-Flughafen
+
+stn yyyyMMddHHmm
+
+stn Abréviation de la station
+y   Année
+M   Mois
+d   Jour
+H   Heure
+m   Minute   
+     
+Heures en UTC:           00:40 UTC = 02:40 heure d'été
+                                   = 01:40 heure d'hiver
+
+Référence du temps pour les valeurs horaires, si rien d'autre ne figure dans la description du paramètre: HH  = (HH-1):41 - HH:40
+Exemple: 13 = se réfère à la période de mesure de 12:41 à 13:40
+
+Les valeurs manquantes sont caractérisées par un '-'.
+
+Informations sur la qualité: la légende relative aux informations sur la qualité se trouve sous: https://gate.meteoswiss.ch/idaweb/text/datenqualitaet_legende_fr.pdf
+
+
+ 
+
+
+
+Stations
+--------
+stn       Nom                                  Parameter        Source de données                                  Longitude/Latitude       Coordonnées [km] Altitude [m]
+MVE       Montana                              tre200dx         MeteoSchweiz                                       7°28'/46°18'             601706/127482    1427
+
+Paramètre
+---------
+          Unité                                Description
+tre200dx  °C                                   température de l'air à 2 m du sol; maximum journalier
+
