@@ -1,0 +1,93 @@
+---
+title: "TR3 P2"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+library(tseries)
+library(dplyr)
+library(plotly)
+engie <- read.csv("engie.csv")
+veolia <- read.csv("veolia.csv")
+
+engie <- engie[-c(4456, 4489), ]
+veolia <- veolia[-c(4456, 4489), ]
+
+engie$Adj.Close <- as.numeric(engie$Adj.Close)
+veolia$Adj.Close <- as.numeric(veolia$Adj.Close)
+
+par(mfrow = c(1,2))
+plot(engie$Adj.Close)
+plot(veolia$Adj.Close)
+
+adf_engie <- adf.test(engie$Adj.Close)
+adf_veolia <- adf.test(veolia$Adj.Close)
+
+
+# Since our p value is higher that 0.05, we cannon reject the null hypotehsis or the non-stationarity of the time series
+```
+
+You can add options to executable code like this
+
+```{r}
+calculate_log_returns <- function(stocks) {
+  log_returns <- -diff(log(stocks))
+  return(log_returns)
+}
+# Calculate negative log returns for each index
+log_returns_engie <- calculate_log_returns(engie$Adj.Close) 
+plot(log_returns_engie)
+
+log_returns_veolia <- calculate_log_returns(veolia$Adj.Close) 
+plot(log_returns_veolia)
+
+plot_engie <- plot_ly(x = engie$Date, y = engie$Adj.Close, type = "scatter", mode = "point", name = "Engie") %>%
+  layout(title = "Engie")
+
+plot_veolia <- plot_ly(x = veolia$Date, y = veolia$Adj.Close, type = "scatter", mode = "point", name = "Veolia") %>%
+  layout(title = "Veolia")
+
+combined_plot_2 <- subplot(plot_engie, plot_veolia)
+
+layout(combined_plot_2, title = "Comparison of stock indices")
+
+#We can see thta for the both actors, the stock indices were crushed on similar dates (2008- Subprime crisis, 2020- Covid crisis, and in 2022- the energy crisis- we believe that it is due to the war in Ukraine)
+```
+
+```{r}
+par(pty="s")
+scatter.smooth(x = log_returns_engie, y = log_returns_veolia, xlab = "Engie negative log returns", ylab = "Veolia negative log returns")
+
+##Our scatter plot shows a strong dependance between the negative log returns. No heavy tails displayed.
+```
+
+```{r}
+
+ 
+cdf_engie <- ecdf(log_returns_engie)
+cdf_veolia <- ecdf(log_returns_veolia)
+
+plot(cdf_engie, col = "red", main = "Empirical Cumulative Distributions")
+lines(cdf_veolia, col ="blue")
+
+
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
