@@ -161,7 +161,7 @@ log_returns_Crans
 ```
 
 
-(d) Now concentrate on the extreme level and tail dependence. Represent χ and χ ̄ for two pairs of series (Montana vs Zermatt and Montana vs NAO). You may want to use the function chiplot of the package evd. What do you observe?
+(d) Now concentrate on the extreme level and tail dependence. Represent χ and χ̄ for two pairs of series (Montana vs Zermatt and Montana vs NAO). You may want to use the function chiplot of the package evd. What do you observe? CALCULER LE X BAR ET X!!!
 
 ```{r}
 
@@ -173,7 +173,6 @@ data_Zermatt_Montana <- data.frame(Zermatt = Z$Zermatt, Montana = Z$Montana)
 # Chi Plot - Zermatt vs Montana Temperatures
 chiplot(data_Zermatt_Montana, main1 = "Chi Plot - Zermatt vs Montana Temperatures")
 
-chipl
 # Create a data frame for Montana Temperatures vs NAO Index
 data_Montana_NAO <- data.frame(Montana = Z$Montana, NAO = Z$NAO)
 
