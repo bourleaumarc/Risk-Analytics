@@ -5,8 +5,11 @@ date: "2023-10-21"
 output: html_document
 ---
 
+
+
 ```{r, echo = FALSE, message = FALSE, warning=FALSE}
 source(here::here("script/setup.R"))
+
 ```
 
 # Part 1: Venice
@@ -220,13 +223,13 @@ In conclusion, the models we used until now were all incomplete, and could not p
 ```{r time series plot}
 # Load the data
 load(here::here("data/niveau.Rdata"))
-
+#niveau$Wert <- format(niveau$Wert, nsmall = 2)
 # Convert to Date format
 niveau$Zeitstempel <- as.Date(niveau$Zeitstempel)
 niveau$Zeitpunkt_des_Auftretens <- as.Date(niveau$Zeitpunkt_des_Auftretens)
-
 # Identifying points above the threshold
-threshold <- 328
+quantile(niveau$Wert, 0.95)
+threshold <- 326.9117 
 above_threshold <- niveau[niveau$Wert > threshold, ]
 
 # Create a base plot
@@ -247,7 +250,7 @@ p
 
 ```
 
-To pinpoint the periods with the highest water levels, we've established a threshold of 327 meters (95% quantile). Upon analysis, the peak water level was observed in August 2007, surpassing this predefined threshold, with a value of 329.32 meters. Furthermore, in July 2021, there were five instances where the water levels exceeded the established threshold of 327 meters.
+To pinpoint the periods with the highest water levels, we've established a threshold of 326.91 meters (95% quantile). Upon analysis, the peak water level was observed in August 2007, surpassing this predefined threshold, with a value of 329.32 meters. Furthermore, in July 2021, there were many instances where the water levels exceeded the established threshold of 326.91 meters.
 
 ## (b) Now display a histogram of the water levels. What do you observe about the distribution?
 
@@ -286,7 +289,7 @@ The peaks-over-threshold (POT) approach is a statistical method used to model ex
 
 5.  **Model Diagnostics**: after fitting the model, perform diagnostic checks to ensure that the GPD provides a good fit to the data: analyzing residual plots, conducting goodness-of-fit tests, and using plots comparing the empirical and theoretical exceedance probabilities.
 
-6.  **Clustering:** apply the Ferro-Segers estimate, using the \*\*\`extremalindex\`\*\* function in R, counts exceedances of a high threshold within time windows. A high extremal index (\\\>1) suggests clustering of exceedances, indicating a need for declustering.
+6.  **Clustering:** apply the Ferro-Segers estimate, using the `extremalindex` function in R, counts exceedances of a high threshold within time windows. A high extremal index (\\\>1) suggests clustering of exceedances, indicating a need for declustering.
 
 7.  **Estimating Return Levels**: estimate high quantiles (return levels) and their corresponding return periods. The return level is the value that is expected to be exceeded once every specific period (e.g., a 100-year flood level).
 
@@ -318,9 +321,9 @@ To measure and deal with clustering in daily water levels, we propose the follow
 plot(niveau$Wert)
 meplot(niveau$Wert, at = pretty(niveau$Wert, n = 10), labels = format(pretty(niveau$Wert, n = 10), nsmall = 1))
 mrlplot(niveau$Wert,main="Mean Residual Life Plot")
-quantile(niveau$Wert, 0.95) # 327
+quantile(niveau$Wert, 0.95) # 326.9117 
 threshrange.plot(niveau$Wert, r = c(325, 329), nint = 16) # Choose 327
-threshold_clustering <- 327 # select 327 as the threshold
+threshold_clustering <- 326.9117  # select 327 as the threshold
 # 2. Extract Exceedances
 exceedances <- niveau$Wert[niveau$Wert > threshold_clustering]
 # 3. Fit distribution over a range of thresholds and parameter estimation: GPD
@@ -328,7 +331,7 @@ fitMLE <- fevd(as.vector(exceedances), method = "MLE",  type="GP", threshold = t
 # 4. Model Diagnostics
 plot(fitMLE)
 # 5. Check if there is clustering of extremes (Ferro-Segers estimate)
-extremalindex(niveau$Wert, threshold_clustering) # 1 / 0.156 = 6.4; we have a very large value (which is very logical as we are dealing with precipitation data), indicating a need to decluster
+extremalindex(niveau$Wert, threshold_clustering) # 1 / 0.149 = 6.7; we have a very large value (which is very logical as we are dealing with precipitation data), indicating a need to decluster
 # 6. Declustering 
 years <- c()
 k <- 1
@@ -343,14 +346,13 @@ for(i in 1:nrow(niveau)){
 years <- years-1999
 decl1 <- decluster(as.vector(niveau$Wert), threshold = threshold_clustering, groups=years, na.action=na.omit)
 plot(decl1)
-decl1
 # Add years and decl1 to niveau data frame 
 niveau$years <- years
 niveau$decl1 <- decl1
-# 7. Estimate Return Levels
+# 7. Estimate Return Levels with declustered data, using cmax = T
 # Assuming 1 observation per day, we prefer using fpot from evd
-rl_mle_evd_50 <- fpot(as.vector(niveau$Wert), threshold = threshold_clustering, npp = 365.25, mper=50)
-rl_mle_evd_100 <- fpot(as.vector(niveau$Wert), threshold = threshold_clustering, npp = 365.25, mper=100)
+rl_mle_evd_50 <- fpot(as.vector(niveau$Wert), cmax = T, threshold = threshold_clustering, npp = 365.25, mper=50)
+rl_mle_evd_100 <- fpot(as.vector(niveau$Wert), cmax= T, threshold = threshold_clustering, npp = 365.25, mper=100)
 rl_mle <- return.level(fitMLE, conf = 0.05, return.period= c(2,5,10,20,50,100), do.ci=T)
 # Plotting the 50-year and 100-year return level
 par(mfrow = c(2, 2))
@@ -360,8 +362,9 @@ plot(rl_mle_evd_100)
 title(main = "100-Year Return Level", line = -1, col.main = "red")
 par(mfrow = c(1, 1))
 # 8. Assessing uncertainty
+# 
 ```
-This threshold was determined by examining the mean residual life plot, where 327 meters emerged as a critical point where the mean excess values begin to show significant variation. This value represents a transition in the data, marking where the mean excess values start to widen noticeably. This observation is further substantiated by the fact that 327 meters corresponds to the 95th percentile of your dataset, indicating it is a level exceeded by only the top 5% of your observations. 
+This threshold was determined by examining the mean residual life plot, where 326.9 meters emerged as a critical point where the mean excess values begin to show significant variation. This value represents a transition in the data, marking where the mean excess values start to widen noticeably. This observation is further substantiated by the fact that 326.9 meters corresponds to the 95th percentile of your dataset, indicating it is a level exceeded by only the top 5% of your observations. 
 
 ## (f) Explain the drawbacks and advantages of using a block maxima method instead of the one used in c)-e).
 
@@ -415,7 +418,7 @@ extremalindex(night_max$night.max, th_1) # 0.31 so 1/0.31 = 3.23 WE NEED TO DECL
 
 
 ```
-We have an approximate cluster size of 3.23, indicating that extremes values are clustered together. Therefore, we need to decluster. 
+We have an approximate mean cluster size of 3.23, indicating that extremes values are clustered together. Therefore, we need to decluster. 
 
 ## (c) Decluster the data from (a) using a suitable threshold. Plot the resulting declustered data. (Hint: you may want to use the extRemes package.)
 ```{r question 3c}
@@ -454,9 +457,13 @@ par(mfrow = c(1, 1))
 For the raw data, the adherence of the points to the 1:1 line in the Quantile-Quantile (Q-Q) plot suggests a superior fit compared to the declustered data. Furthermore, the lower AIC value for the raw data implies that it provides a more efficient balance between model complexity and goodness of fit. This indicates that the model for the raw data may be more appropriate for capturing the underlying distribution of the dataset.
 
 ## (e) Repeat the above analysis for the negatives of the daily nightly minimum temperatures for the winter months (November-February).
+As we are dealing with negative values (min), we need to invert the `night.min` values to apply the Peak-Over-Threshold. 
 ```{r}
 # Subset the winter months (November to February)
 winter_night_min <- night_min[format(night_min$date, "%m") %in% c("11", "12", "01", "02"), ]
+# Invert night.min as temperatures are negative 
+winter_night_min$night.min <- -winter_night_min$night.min
+
 # Visualise the data: plot and histogram
 p <- ggplot(winter_night_min, aes(x = date, y = night.min)) +
   geom_line() +  # This adds the line type plot
@@ -470,8 +477,8 @@ min(winter_night_min$night.min); mean(winter_night_min$night.min); max(winter_ni
 quantile(winter_night_min$night.min, 0.95)
 # Choose the threshold using the mrlplot()
 mrlplot(winter_night_min$night.min, main="Mean residual")
-threshrange.plot(winter_night_min$night.min, r= c(-5,15), nint =20)
-th_2 <- -9 
+threshrange.plot(winter_night_min$night.min, r= c(0,6), nint =20)
+th_2 <- 3.3
 # Visualise the threshold 
 plot(winter_night_min$night.min, type = 'l')
 abline(h=th_2,col=2) # looks good 
@@ -488,7 +495,37 @@ loc <- as.numeric(return.level(pot_mle_2, conf = 0.05, return.period=50))
 segments(50, 0, 50, loc, col= 'midnightblue',lty=6)
 segments(0.01,loc,50, loc, col='midnightblue', lty=6)
 # Assess wether extremes occur in a cluster using extremalindex()
-extremalindex(winter_night_min$night.min, th_2) # 0.00341so 1/0.00341 = 293
+extremalindex(winter_night_min$night.min, th_2) # 0.32 so 1/0.32 = 3.125
+########################### Declustering ########################### 
+# We need to create a vector of size night_min that stores the year. 
+years_part3_2 <- c()
+k <- 1
+for (i in 1:nrow(night_min)) {
+  if (is.na(night_min$night.min[i])) {
+    next
+  } else {
+    years_part3_2[k] <- year(night_min$date[i])
+    k <- k + 1
+  }
+}
+years_part3_2 <- years_part3_2-1999
+
+# Use decluster function of extRemes 
+decl2 <- decluster(night_min$night.min, threshold=th_2, groups=years_part3_2, na.action=na.omit) # vector and groups need to have the same size 
+decl2 # we have 71 clusters 
+plot(decl2) # shows in grey the points that are not retained in the selection 
+# Fit GPD with clustered and declustered data 
+# Use fevd of the normal and declustered 
+gpd_raw_2 <- fevd(night_min$night.min, threshold = th_2, type = "GP")
+gpd_declustered_2 <- fevd(decl2, threshold = th_2, type = "GP")
+par(mfrow = c(2, 2))
+plot(gpd_raw_2)
+title(main = "GPD fitted to raw data", line = 1, col.main = "red")
+plot(gpd_declustered_2)
+title(main = "GPD fitted to declustered data", line = 1, col.main = "red")
+par(mfrow = c(1, 1))
+# Assess the fit: AIC for raw is 38100, AIC for declustered data is 1736
+
 ```
 
 

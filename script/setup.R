@@ -47,7 +47,7 @@ lapply(packages, function(pkg) {
 
 # general options
 options(
-  digits = 3,
+  digits = 9,
   str = strOptions(strict.width = "cut"),
   width = 69,
   tibble.width = 69,
@@ -61,3 +61,5 @@ theme_set(theme_light())
 t <- list(
   family = "Times New Roman",
   size = 14)
+
+
