@@ -16,6 +16,10 @@ format:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, collapse = TRUE)
+knitr::knit_hooks$set(inline = function(x){
+  x <- sprintf("%1.2f", x)
+  paste(x, collapse = ", ")
+})
 ```
 
 ```{r, echo = FALSE, message = FALSE, warning=FALSE}

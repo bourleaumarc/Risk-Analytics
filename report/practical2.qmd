@@ -458,9 +458,31 @@ For the raw data, the adherence of the points to the 1:1 line in the Quantile-Qu
 
 ## (e) Repeat the above analysis for the negatives of the daily nightly minimum temperatures for the winter months (November-February).
 As we are dealing with negative values (min), we need to invert the `night.min` values to apply the Peak-Over-Threshold. 
+::: callout-note
+## Note
+To correctly subset winter months in `night.min` considering that winter spans from November and December of year t and January and February of year t+1, we need to adjust the selection process. 
+:::
 ```{r}
+# Assuming 'night_min' has a 'date' column in Date format
+night_min$year <- as.numeric(format(night_min$date, "%Y"))
+night_min$month <- format(night_min$date, "%m")
+night_min <- night_min %>%
+  mutate(
+    year = as.numeric(format(date, "%Y")),
+    month = format(date, "%m"),
+    season_year = ifelse(month %in% c("01", "02"), year - 1, year)
+  )
+# Subset for winter months
+winter_night_min <- night_min %>%
+  filter(
+    (month %in% c("11", "12") & season_year == year) |
+    (month %in% c("01", "02") & season_year == year - 1)
+  )
+
+
+
 # Subset the winter months (November to February)
-winter_night_min <- night_min[format(night_min$date, "%m") %in% c("11", "12", "01", "02"), ]
+#winter_night_min <- night_min[format(night_min$date, "%m") %in% c("11", "12", "01", "02"), ]
 # Invert night.min as temperatures are negative 
 winter_night_min$night.min <- -winter_night_min$night.min
 
@@ -500,23 +522,23 @@ extremalindex(winter_night_min$night.min, th_2) # 0.32 so 1/0.32 = 3.125
 # We need to create a vector of size night_min that stores the year. 
 years_part3_2 <- c()
 k <- 1
-for (i in 1:nrow(night_min)) {
-  if (is.na(night_min$night.min[i])) {
+for (i in 1:nrow(winter_night_min)) {
+  if (is.na(winter_night_min$night.min[i])) {
     next
   } else {
-    years_part3_2[k] <- year(night_min$date[i])
+    years_part3_2[k] <- year(winter_night_min$date[i])
     k <- k + 1
   }
 }
 years_part3_2 <- years_part3_2-1999
 
 # Use decluster function of extRemes 
-decl2 <- decluster(night_min$night.min, threshold=th_2, groups=years_part3_2, na.action=na.omit) # vector and groups need to have the same size 
+decl2 <- decluster(winter_night_min$night.min, threshold=th_2, groups=years_part3_2, na.action=na.omit) # vector and groups need to have the same size 
 decl2 # we have 71 clusters 
 plot(decl2) # shows in grey the points that are not retained in the selection 
 # Fit GPD with clustered and declustered data 
 # Use fevd of the normal and declustered 
-gpd_raw_2 <- fevd(night_min$night.min, threshold = th_2, type = "GP")
+gpd_raw_2 <- fevd(winter_night_min$night.min, threshold = th_2, type = "GP")
 gpd_declustered_2 <- fevd(decl2, threshold = th_2, type = "GP")
 par(mfrow = c(2, 2))
 plot(gpd_raw_2)
@@ -524,7 +546,7 @@ title(main = "GPD fitted to raw data", line = 1, col.main = "red")
 plot(gpd_declustered_2)
 title(main = "GPD fitted to declustered data", line = 1, col.main = "red")
 par(mfrow = c(1, 1))
-# Assess the fit: AIC for raw is 38100, AIC for declustered data is 1736
+# Assess the fit: AIC for raw is 38100, AIC for declustered data is 193
 
 ```
 
