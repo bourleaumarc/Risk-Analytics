@@ -28,7 +28,8 @@ packages <- c(
   "readr",
   "lubridate",
   "evd",
-  "xts")
+  "xts",
+  "data.table")
 
 # Check if each package is available, and install it if not
 for (package in packages) {

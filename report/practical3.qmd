@@ -11,9 +11,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 source(here::here("script/setup.R"))
 ```
+
 # Part 1
 
 ## (a) Read in the data and select only the winter temperature data. You can use the code lines of the file GetData.R to get the data and select only the winter values.
+
 ```{r}
 ##### Download daily NAO measurements
 NAO.daily <- 
@@ -23,7 +25,7 @@ colnames(NAO.daily) <- c("year","month","day","NAO")
 
 ##### Download temperature data: be sure to work in the correct directory
 months <- c(12,1,2) #keep only winter observations
-temp_max_Zermatt <- read_delim("daily_maximum_Zermatt/order_107669_data.txt", 
+temp_max_Zermatt <- read_delim(here::here("data/practical_3/daily_maximum_Zermatt/order_107669_data.txt"), 
                                          ";", escape_double = FALSE, col_types = 
                                            cols(time = col_number()), 
                                          trim_ws = TRUE, skip = 1)
@@ -33,7 +35,7 @@ temp_max_Zermatt           <- temp_max_Zermatt[-1,]
 temp_max_Zermatt[,2]       <- as.Date(apply(temp_max_Zermatt[,2],1,as.character),
                                       "%Y%m%d")
 
-temp_max_Montana <- read_delim("daily_maximum_Montana/order_107668_data.txt", ";", escape_double = FALSE, col_types = cols(time = col_number()), trim_ws = TRUE, skip = 1)
+temp_max_Montana <- read_delim(here::here("data/practical_3/daily_maximum_Montana/order_107668_data.txt"), ";", escape_double = FALSE, col_types = cols(time = col_number()), trim_ws = TRUE, skip = 1)
 
 colnames(temp_max_Montana) <- c("station","time","temp")
 temp_max_Montana           <- temp_max_Montana[-1,]
@@ -100,52 +102,58 @@ x_Zermatt[,"time"] <- (x_Zermatt[,"time"]-min(x_Zermatt[,"time"]))/(max(x_Zermat
 Z <- data.frame("Montana"=x_Montana[,"temp"] , "Zermatt"=x_Zermatt[,"temp"], "NAO"=x_Zermatt[,"nao"])
 ```
 
-
-## (b) Represent the data and especially scatterplots of Zermatt values against Montana’s values. Same with Montana values against NAO values. Comment.
-
+## (b) Represent the data and especially scatterplots of Zermatt values against Montana's values. Same with Montana values against NAO values. Comment.
+::: panel-tabset
+## Scatterplot Zermatt vs Montana temperature
 ```{r}
 # Scatterplot of Zermatt values against Montana values
 plot(Z$Montana, Z$Zermatt, xlab = "Montana Temperature", ylab = "Zermatt Temperature", 
      main = "Zermatt vs Montana Temperatures")
-abline(lm(Z$Zermatt ~ Z$Montana), col = "red") # Add a linear regression line
+abline(lm(Z$Zermatt ~ Z$Montana), col = "red") 
+legend("topright", 
+       legend = "Fitted Regression Line", 
+       col = "red", 
+       lty = 1, 
+       cex = 0.8)
+```
 
+## Scatterplot Montana temperature vs NAO values 
+```{r}
 # Scatterplot of Montana values against NAO values
 plot(Z$Montana, Z$NAO, xlab = "Montana Temperature", ylab = "NAO Index", 
      main = "Montana Temperature vs NAO Index")
-abline(lm(Z$NAO ~ Z$Montana), col = "blue") # Add a linear regression line
-
+abline(lm(Z$NAO ~ Z$Montana), col = "red") # Add a linear regression line
+legend("topright", 
+       legend = "Fitted Regression Line", 
+       col = "red", 
+       lty = 1, 
+       cex = 0.8)
 ```
+:::
 
-Zermatt vs Montana Temperatures:
-The points in the scatterplot form a clear trend, it suggests a positive relationship between temperatures in Zermatt and Montana. The red line represents the linear regression model fitted to the data points. It aligns well with the points, indicating a positive strong linear relationship between the temperatures at the two locations.
+-   **Zermatt vs Montana Temperatures**: scatterplot displays a discernible pattern, indicating a positive correlation between the temperatures in Zermatt and Montana. The red line, which delineates the linear regression model applied to the data, closely follows the trajectory of the data points. This suggests a robust positive linear association between the temperatures recorded in the two regions.
 
-2) Montana Temperature vs NAO Index:
-This plot visualizes the relationship between Montana temperatures and the NAO index. The blue line represents the linear regression model fitted to the data points. However, the points do not form a pattern and the blue line aligns doesn't well, it suggests that there is no relationship between Montana temperatures and the NAO index. A scattered plot might indicate a weak correlation between Montana temperatures and the NAO index.
+-   **Montana Temperature vs NAO Index:** scatterplot presents a dense concentration of data points that do not exhibit a clear directional trend. The red line, which represents the fitted linear regression model, appears to be horizontal, suggesting little to no linear relationship between the temperature in Montana and the NAO Index. The lack of a slope in the regression line implies that, based on this model, changes in the NAO Index do not correspond to predictable or significant changes in Montana's temperature. This could indicate that the NAO Index may not be a strong predictor of temperature in Montana, or that a linear model is not the most appropriate for this data set.
 
-But we have different scales and it's not the perfect graph to highlight possible correlation between the two variables.
-
-(c) Test the correlation between these two pairs of series.
-
+## (c) Test the correlation between these two pairs of series.
+::: panel-tabset
+## Zermatt vs Montana
 ```{r}
-# Correlation between Zermatt and Montana Temperatures
 cor_Zermatt_Montana <- cor(Z$Zermatt, Z$Montana)
 cat("Correlation between Zermatt and Montana Temperatures:", cor_Zermatt_Montana, "\n")
+```
 
+## Montana temperature vs NAO values 
+```{r}
 # Correlation between Montana Temperatures and NAO Index
 cor_Montana_NAO <- cor(Z$Montana, Z$NAO)
 cat("Correlation between Montana Temperatures and NAO Index:", cor_Montana_NAO, "\n")
 
 ```
+Correlation test reveals a notably strong positive correlation between the temperatures in Zermatt and Montana, confirming expectations of a close relationship. Conversely, the correlation between Montana's temperatures and the normalized pressure difference between Iceland and the Azores is negligible, registering at a mere 0.03.
 
-Here again, we see no significant correlation between temperatures and the NAO index.
-
-Transform the data because its time series (daily data)???
-
-(d) Now concentrate on the extreme level and tail dependence. Represent χ and χ̄ for two pairs of series (Montana vs Zermatt and Montana vs NAO). You may want to use the function chiplot of the package evd. What do you observe? 
-
-
+## (d) Now concentrate on the extreme level and tail dependence. Represent χ and χ̄ for two pairs of series (Montana vs Zermatt and Montana vs NAO). You may want to use the function chiplot of the package evd. What do you observe? 
 ```{r}
-
 # Create a data frame for Zermatt vs Montana Temperatures
 data_Zermatt_Montana <- data.frame(Zermatt = Z$Zermatt, Montana = Z$Montana)
 
@@ -160,8 +168,6 @@ chiplot(data_Montana_NAO, main1 = "Chi Plot - Montana Temperatures vs NAO Index"
 
 ```
 
-
-
 ```{r}
 # Pair 1: Zermatt vs. Montana
 pair_1_diff <- Z$Zermatt - Z$Montana
@@ -170,6 +176,5 @@ chiplot(cbind(pair_1_diff, pair_1_diff^2))  # Only include differences and squar
 # Pair 2: Montana vs. NAO
 pair_2_diff <- Z$Montana - Z$NAO
 chiplot(cbind(pair_2_diff, pair_2_diff^2))  # Only include differences and squared differences
-
 ```
 
