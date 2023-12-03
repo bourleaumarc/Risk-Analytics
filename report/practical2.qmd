@@ -361,8 +361,7 @@ title(main = "50-Year Return Level", line = -1, col.main = "red")
 plot(rl_mle_evd_100)
 title(main = "100-Year Return Level", line = -1, col.main = "red")
 par(mfrow = c(1, 1))
-# 8. Assessing uncertainty
-# 
+
 ```
 This threshold was determined by examining the mean residual life plot, where 326.9 meters emerged as a critical point where the mean excess values begin to show significant variation. This value represents a transition in the data, marking where the mean excess values start to widen noticeably. This observation is further substantiated by the fact that 326.9 meters corresponds to the 95th percentile of your dataset, indicating it is a level exceeded by only the top 5% of your observations. 
 
@@ -478,22 +477,28 @@ winter_night_min <- night_min %>%
     (month %in% c("11", "12") & season_year == year) |
     (month %in% c("01", "02") & season_year == year - 1)
   )
+# Add the month in season-year 
+winter_night_min <- winter_night_min %>% mutate(day = day(date), full_date = paste(day, month, season_year, sep = "-"))
+# Convert into date format
+winter_night_min <- winter_night_min %>% mutate(full_date = as.Date(full_date, format = "%d-%m-%Y"))
 
+```
+::: callout-note
+## Note
+To properly implement the Peak-Over-Threshold method with negative values, the data frame should be inverted so that the negative values are positioned at the top.
+:::
 
-
-# Subset the winter months (November to February)
-#winter_night_min <- night_min[format(night_min$date, "%m") %in% c("11", "12", "01", "02"), ]
+```{r}
 # Invert night.min as temperatures are negative 
 winter_night_min$night.min <- -winter_night_min$night.min
-
 # Visualise the data: plot and histogram
-p <- ggplot(winter_night_min, aes(x = date, y = night.min)) +
+p <- ggplot(winter_night_min, aes(x = full_date , y = night.min)) +
   geom_line() +  # This adds the line type plot
   labs(x = "Date", y = "Night Min Temperature", title = "Winter Night Min Temperatures") +
   theme_minimal()  # Optional: adds a minimal theme
 interactive_plot_winter <- ggplotly(p)
 interactive_plot_winter
-hist(winter_night_min$night.min, breaks = 30, col = "skyblue", xlab = "Date", ylab = "Night Min Temperature", main = "Winter Night Min Temperatures frequency")
+hist(winter_night_min$night.min, breaks = 30, col = "skyblue", xlab = "Frequency", ylab = "Night Min Temperature", main = "Winter Night Min Temperatures frequency")
 # Have more information about the distribution 
 min(winter_night_min$night.min); mean(winter_night_min$night.min); max(winter_night_min$night.min)
 quantile(winter_night_min$night.min, 0.95)
