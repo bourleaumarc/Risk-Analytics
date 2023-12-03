@@ -4,28 +4,24 @@ format: html
 editor: visual
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
 
 ```{r}
-install.packages("copula")
 library(copula)
 library(MASS)
 library(tseries)
 library(dplyr)
 library(plotly)
+library(VineCopula)
+```
 
-##Question a
 
+## (a) Read in the data. Then, plot the raw prices (Adj.Close) of both stocks. Discuss the stationarity assumption. 
+
+```{r}
 engie <- read.csv("engie.csv")
 veolia <- read.csv("veolia.csv")
 
-## There are NAs in rows, so we substract them from the df
+# Data cleaning and plot
 engie <- engie[-c(4456, 4489), ]
 veolia <- veolia[-c(4456, 4489), ]
 
@@ -36,22 +32,23 @@ par(mfrow = c(1,2))
 plot(engie$Adj.Close)
 plot(veolia$Adj.Close)
 
-## To asess the stationarity, we do a adf test
-adf_engie <- adf.test(engie$Adj.Close). #p-value = 0.4466
+# ADF test to asses the stationarity
+adf_engie <- adf.test(engie$Adj.Close) #p-value = 0.4466
 adf_veolia <- adf.test(veolia$Adj.Close)#p-value = 0.8228
 
-# Since our p value is higher that 0.05, we cannon reject the null hypotehsis or the non-stationarity of the time series.
 ```
 
-You can add options to executable code like this
+Since our p value is higher that 0.05 for both data sets, we cannot reject the null hypothesis of the non-stationarity of the time series.
+
+## (b) First, compute and plot the negative log returns in independent plots. Discuss the dates of occurrence of extreme events. Then, produce a scatterplot of the negative log returns of both stocks and discuss their (visual) dependence.
 
 ```{r}
-##Question b
-
+# Create log return function
 calculate_log_returns <- function(stocks) {
   log_returns <- -diff(log(stocks))
   return(log_returns)
 }
+
 # Calculate negative log returns for each index
 log_returns_engie <- calculate_log_returns(engie$Adj.Close) 
 plot(log_returns_engie)
@@ -68,22 +65,21 @@ plot_veolia <- plot_ly(x = veolia$Date, y = veolia$Adj.Close, type = "scatter", 
 combined_plot_2 <- subplot(plot_engie, plot_veolia)
 
 layout(combined_plot_2, title = "Comparison of stock indices")
-
-#At first sight, we see that the log returns of the indices for both companies follow a similar trend, the extremes happened at more or less same periods and the volatility is very high. The extreme events happened in the end of 2007 and in 2008 (subprime crisis), 2012-2013.
 ```
+At first sight, we see that the log returns of the indices for both companies follow a similar trend, the extremes happened at more or less same periods and the volatility is very high. The extreme events happened in 2008 (subprime crisis), 2012-2013 (european energy crisis), 2020 (COVID-19), and 2022 (Energy crisis).
+
 
 ```{r}
+# Drawing a scatter plot
 par(pty="s")
 scatter.smooth(x = log_returns_engie, y = log_returns_veolia, xlab = "Engie negative log returns", ylab = "Veolia negative log returns")
-
-##Our scatter plot shows a strong dependance between the negative log returns. No heavy tails displayed.
 ```
+Our scatter plot shows a strong dependance between the negative log returns. No heavy tails displayed, and the shape is close to eliptical.
 
+## (c) Plot the pseudo-samples obtained from estimating the marginal distributions by their empirical CDFs.
 ```{r}
-## Question c
 
-### We compute and show the CDF for both negative log returns 
-
+# We compute and show the CDF for both negative log returns 
 cdf_engie <- ecdf(log_returns_engie)
 cdf_veolia <- ecdf(log_returns_veolia)
 
@@ -92,42 +88,41 @@ lines(cdf_veolia, col ="blue")
 
 legend("bottomright", legend = c("Engie", "Veolia"), col = c("red", "blue"), lty = 1)
 
-### Engie
-
 # Number of pseudo-samples
 num_samples <- 1000
 
+## Engie
 # Generate uniform samples between 0 and 1
 u <- runif(num_samples)
 
 # Use the inverse of the ECDF to transform uniform samples to pseudo-samples
 pseudo_samples_e <- quantile(cdf_engie, u)
 
-### Veolia 
+
+## Veolia 
+# Generate uniform samples between 0 and 1
 u <- runif(num_samples)
 
 # Use the inverse of the ECDF to transform uniform samples to pseudo-samples
 pseudo_samples_v <- quantile(cdf_veolia, u)
 
-### Plot pseudo-samples
 
+# Plot pseudo-samples
 par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
 
-plot(sort(pseudo_samples_e), main = "Pseudo-samples", xlab = "Index", ylab = "Log Returns", col = "red", pch = 16)
+plot(sort(pseudo_samples_e), main = "Engie Pseudo-samples", xlab = "Index", ylab = "Log Returns", col = "red", pch = 16)
 
-plot(sort(pseudo_samples_v), main = "Pseudo-samples", xlab = "Index", ylab = "Log Returns", col = "red", pch = 16)
+plot(sort(pseudo_samples_v), main = "Veolia Pseudo-samples", xlab = "Index", ylab = "Log Returns", col = "red", pch = 16)
 
-###Scatter for pseudo samples both
+# Scatter for both pseudo samples
 
 scatter.smooth(x = pseudo_samples_e, y = pseudo_samples_v, xlab = "Engie pseudo", ylab = "Veolia pseudo")
 ```
+Once again, we can observe a very condensed cloud for our datasets.
 
-The `echo: false` option disables the printing of code (only output is displayed).
-
+## (d) Fit a Gaussian, a t, a Gumbel and a Clayton copula to the data. Select the copula model using an information criterion, such as the AIC.
 ```{r}
-### Question d
-
-#probabilities for cdf_engie and cdf_veoila
+# Probabilities for cdf_engie and cdf_veoila
 u1 <- pobs(log_returns_engie)
 u2 <- pobs(log_returns_veolia)
 data <- data.frame(engie_prob = u1, veolia_prob = u2)
@@ -151,18 +146,29 @@ fit_clayton <- fitCopula(clayton_copula, data, method = "mpl")
 
 # Calculate AIC values
 aic_values <- AIC(fit_gaussian, fit_t, fit_gumbel, fit_clayton)
+aic_values
 min(aic_values$AIC) ###the t distribution fits the best our data
 
 ```
 
+From the AIC results, we can conclude that the t copula is the best one for our data.
+
+## (e) Compute the theoretical tail dependence coefficients for the copulae fitted in (d), using the parameters obtained above. Hint: use the BiCopPar2TailDep() function from the VineCopula package.
+
+```{r}
+
+BiCopPar2TailDep(family = 2, par = fit_t@copula@parameters[1], par2 = fit_t@copula@parameters[2])
+
+#Weird, need to check!!
+```
+
+
+## (f) Compute the non-parametric estimators of the tail dependence coefficients obtained from the data. Are these estimates close to the theoretical ones obtained with the best model selected in (d)?
+
 ```{r}
 
 ```
 
-```{r}
 
-```
 
-```{r}
 
-```
