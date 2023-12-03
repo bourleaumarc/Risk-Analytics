@@ -4,9 +4,6 @@ output: html_document
 date: "2023-11-30"
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
 ```{r}
 source(here::here("script/setup.R"))
@@ -150,6 +147,7 @@ cor_Montana_NAO <- cor(Z$Montana, Z$NAO)
 cat("Correlation between Montana Temperatures and NAO Index:", cor_Montana_NAO, "\n")
 
 ```
+:::
 Correlation test reveals a notably strong positive correlation between the temperatures in Zermatt and Montana, confirming expectations of a close relationship. Conversely, the correlation between Montana's temperatures and the normalized pressure difference between Iceland and the Azores is negligible, registering at a mere 0.03.
 
 ## (d) Now concentrate on the extreme level and tail dependence. Represent χ and χ̄ for two pairs of series (Montana vs Zermatt and Montana vs NAO). You may want to use the function chiplot of the package evd. What do you observe? 
