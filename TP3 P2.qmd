@@ -13,12 +13,19 @@ Quarto enables you to weave together content and executable code into a finished
 When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
 
 ```{r}
+install.packages("copula")
+library(copula)
+library(MASS)
 library(tseries)
 library(dplyr)
 library(plotly)
+
+##Question a
+
 engie <- read.csv("engie.csv")
 veolia <- read.csv("veolia.csv")
 
+## There are NAs in rows, so we substract them from the df
 engie <- engie[-c(4456, 4489), ]
 veolia <- veolia[-c(4456, 4489), ]
 
@@ -29,16 +36,18 @@ par(mfrow = c(1,2))
 plot(engie$Adj.Close)
 plot(veolia$Adj.Close)
 
-adf_engie <- adf.test(engie$Adj.Close)
-adf_veolia <- adf.test(veolia$Adj.Close)
+## To asess the stationarity, we do a adf test
+adf_engie <- adf.test(engie$Adj.Close). #p-value = 0.4466
+adf_veolia <- adf.test(veolia$Adj.Close)#p-value = 0.8228
 
-
-# Since our p value is higher that 0.05, we cannon reject the null hypotehsis or the non-stationarity of the time series
+# Since our p value is higher that 0.05, we cannon reject the null hypotehsis or the non-stationarity of the time series.
 ```
 
 You can add options to executable code like this
 
 ```{r}
+##Question b
+
 calculate_log_returns <- function(stocks) {
   log_returns <- -diff(log(stocks))
   return(log_returns)
@@ -60,7 +69,7 @@ combined_plot_2 <- subplot(plot_engie, plot_veolia)
 
 layout(combined_plot_2, title = "Comparison of stock indices")
 
-#We can see thta for the both actors, the stock indices were crushed on similar dates (2008- Subprime crisis, 2020- Covid crisis, and in 2022- the energy crisis- we believe that it is due to the war in Ukraine)
+#At first sight, we see that the log returns of the indices for both companies follow a similar trend, the extremes happened at more or less same periods and the volatility is very high. The extreme events happened in the end of 2007 and in 2008 (subprime crisis), 2012-2013.
 ```
 
 ```{r}
@@ -71,23 +80,89 @@ scatter.smooth(x = log_returns_engie, y = log_returns_veolia, xlab = "Engie nega
 ```
 
 ```{r}
+## Question c
 
- 
+### We compute and show the CDF for both negative log returns 
+
 cdf_engie <- ecdf(log_returns_engie)
 cdf_veolia <- ecdf(log_returns_veolia)
 
 plot(cdf_engie, col = "red", main = "Empirical Cumulative Distributions")
 lines(cdf_veolia, col ="blue")
 
+legend("bottomright", legend = c("Engie", "Veolia"), col = c("red", "blue"), lty = 1)
 
-```
+### Engie
 
+# Number of pseudo-samples
+num_samples <- 1000
 
-```{r}
-```
+# Generate uniform samples between 0 and 1
+u <- runif(num_samples)
 
+# Use the inverse of the ECDF to transform uniform samples to pseudo-samples
+pseudo_samples_e <- quantile(cdf_engie, u)
 
-```{r}
+### Veolia 
+u <- runif(num_samples)
+
+# Use the inverse of the ECDF to transform uniform samples to pseudo-samples
+pseudo_samples_v <- quantile(cdf_veolia, u)
+
+### Plot pseudo-samples
+
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+
+plot(sort(pseudo_samples_e), main = "Pseudo-samples", xlab = "Index", ylab = "Log Returns", col = "red", pch = 16)
+
+plot(sort(pseudo_samples_v), main = "Pseudo-samples", xlab = "Index", ylab = "Log Returns", col = "red", pch = 16)
+
+###Scatter for pseudo samples both
+
+scatter.smooth(x = pseudo_samples_e, y = pseudo_samples_v, xlab = "Engie pseudo", ylab = "Veolia pseudo")
 ```
 
 The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+### Question d
+
+#probabilities for cdf_engie and cdf_veoila
+u1 <- pobs(log_returns_engie)
+u2 <- pobs(log_returns_veolia)
+data <- data.frame(engie_prob = u1, veolia_prob = u2)
+data_matrix <- as.matrix(data)
+
+# Fit Gaussian copula
+gaussian_copula <- normalCopula(dim = 2)
+fit_gaussian <- fitCopula(gaussian_copula, data, method = "mpl")
+
+# Fit t copula
+t_copula <- tCopula(dim = 2, df = 3)
+fit_t <- fitCopula(t_copula, data, method = "mpl")
+
+# Fit Gumbel copula
+gumbel_copula <- gumbelCopula(dim = 2)
+fit_gumbel <- fitCopula(gumbel_copula, data, method = "mpl")
+
+# Fit Clayton copula
+clayton_copula <- claytonCopula(dim = 2, param = 2)   
+fit_clayton <- fitCopula(clayton_copula, data, method = "mpl")
+
+# Calculate AIC values
+aic_values <- AIC(fit_gaussian, fit_t, fit_gumbel, fit_clayton)
+min(aic_values$AIC) ###the t distribution fits the best our data
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
