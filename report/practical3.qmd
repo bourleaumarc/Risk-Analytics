@@ -4,19 +4,18 @@ output: html_document
 date: "2023-11-30"
 ---
 
-
-```{r}
+# Practical 3 
+```{r, warning = FALSE}
 source(here::here("script/setup.R"))
 ```
+ 
+## Part 1
 
-# Part 1
-
-## (a) Read in the data and select only the winter temperature data. You can use the code lines of the file GetData.R to get the data and select only the winter values.
+### (a) Read in the data and select only the winter temperature data. You can use the code lines of the file GetData.R to get the data and select only the winter values.
 
 ```{r}
 ##### Download daily NAO measurements
-NAO.daily <- 
-  fread('ftp://ftp.cdc.noaa.gov/Public/gbates/teleconn/nao.reanalysis.t10trunc.1948-present.txt')
+NAO.daily <- fread('ftp://ftp.cdc.noaa.gov/Public/gbates/teleconn/nao.reanalysis.t10trunc.1948-present.txt')
 NAO.daily <- as.matrix(NAO.daily)
 colnames(NAO.daily) <- c("year","month","day","NAO")
 
@@ -106,9 +105,9 @@ x_Zermatt[,"time"] <- (x_Zermatt[,"time"]-min(x_Zermatt[,"time"]))/(max(x_Zermat
 Z <- data.frame("Montana"=x_Montana[,"temp"] , "Zermatt"=x_Zermatt[,"temp"], "NAO"=x_Zermatt[,"NAO"])
 ```
 
-## (b) Represent the data and especially scatterplots of Zermatt values against Montana's values. Same with Montana values against NAO values. Comment.
+### (b) Represent the data and especially scatterplots of Zermatt values against Montana's values. Same with Montana values against NAO values. Comment.
 ::: panel-tabset
-## Scatterplot Zermatt vs Montana temperature
+### Scatterplot Zermatt vs Montana temperature
 ```{r}
 # Scatterplot of Zermatt values against Montana values
 plot(Z$Montana, Z$Zermatt, xlab = "Montana Temperature", ylab = "Zermatt Temperature", 
@@ -121,7 +120,7 @@ legend("topright",
        cex = 0.8)
 ```
 
-## Scatterplot Montana temperature vs NAO values 
+### Scatterplot Montana temperature vs NAO values 
 ```{r}
 # Scatterplot of Montana values against NAO values
 plot(Z$Montana, Z$NAO, xlab = "Montana Temperature", ylab = "NAO Index", 
@@ -139,16 +138,16 @@ legend("topright",
 
 -   **Montana Temperature vs NAO Index:** scatterplot presents a dense concentration of data points that do exhibit a slight upward trend. The red line, which represents the fitted linear regression model, appears to be horizontal, suggesting little linear relationship between the temperature in Montana and the NAO Index. The slightly positive slope in the regression line implies that, based on this model, changes in the NAO Index correspond to predictable or significant changes in Montana's temperature. This could indicate that the NAO Index may be a predictor of temperature in Montana. 
 
-## (c) Test the correlation between these two pairs of series.
+### (c) Test the correlation between these two pairs of series.
 ::: panel-tabset
-## Zermatt vs Montana
+### Zermatt vs Montana
 ```{r}
 cor_Zermatt_Montana <- cor(Z$Zermatt, Z$Montana)
 cat("Correlation between Zermatt and Montana Temperatures:", cor_Zermatt_Montana, "\n")
 cor.test(Z$Zermatt, Z$Montana)
 ```
 
-## Montana temperature vs NAO values 
+### Montana temperature vs NAO values 
 ```{r}
 # Correlation between Montana Temperatures and NAO Index
 cor_Montana_NAO <- cor(Z$Montana, Z$NAO)
@@ -159,11 +158,12 @@ cor.test(Z$Montana, Z$NAO) # significant
 ```
 :::
 
-- Correlation between Montana and Zermatt temperatures: Correlation test reveals a notably strong positive correlation between the temperatures in Zermatt and Montana, confirming expectations of a close relationship. 
-- Correaltion between Montana and NAO: Correlation is significant and still around 25%. However, both of `cor.test` are signficant. 
+- Correlation between Montana and Zermatt temperatures: correlation coefficient of 0.95 underscores an exceptionally strong positive relationship, consistent with the anticipation of a significant linkage between their climatic patterns. The statistical significance of this correlation has been affirmed by the `cor.test`, solidifying the inference that the temperatures in these two regions move in a closely synchronized manner. 
+- Correlation between Montana and NAO: observed to be 0.25. This represents a relatively weak positive correlation, suggesting that while there is some degree of association between the two variables, it is not substantial. `cor.test` indicated that the correlation is also significant. 
 
-## (d) Now concentrate on the extreme level and tail dependence. Represent χ and χ̄ for two pairs of series (Montana vs Zermatt and Montana vs NAO). You may want to use the function chiplot of the package evd. What do you observe? 
-
+### (d) Now concentrate on the extreme level and tail dependence. Represent χ and χ̄ for two pairs of series (Montana vs Zermatt and Montana vs NAO). You may want to use the function chiplot of the package evd. What do you observe? 
+::: panel-tabset
+### Zermatt vs Montana 
 ```{r}
 # Create a data frame for Zermatt vs Montana Temperatures
 data_Zermatt_Montana <- data.frame(Zermatt = Z$Zermatt, Montana = Z$Montana)
@@ -171,18 +171,19 @@ data_Zermatt_Montana <- data.frame(Zermatt = Z$Zermatt, Montana = Z$Montana)
 # Chi Plot - Zermatt vs Montana Temperatures
 chiplot(data_Zermatt_Montana, main1 = "Chi Plot - Zermatt vs Montana Temperatures")
 
+```
+### Montana vs NAO index 
+```{r}
 # Create a data frame for Montana Temperatures vs NAO Index
 data_Montana_NAO <- data.frame(Montana = Z$Montana, NAO = Z$NAO)
 
 # Chi Plot - Montana Temperatures vs NAO Index
 chiplot(data_Montana_NAO, main1 = "Chi Plot - Montana Temperatures vs NAO Index")
-
 ```
+:::
+- **Chi Bar Plot of Zermatt vs Montana temperatures**: indicates the existence of tail dependence, revealing that there is a significant relationship between their extreme values. The plot demonstrates a consistent deviation from zero across all quantiles, with the measure of dependence (lambda) increasing towards 1. This pattern suggests that the extreme temperatures in Zermatt and Montana are not independent but rather exhibit a linked behavior, particularly in the tails of their respective distributions. 
 
-From the chi bar plot of Zermatt and Montana temperatures, we notice the presence of asymptotic dependence which means the simultaneous dependence between their extreme values. The line significantly deviate from zero from the first quantile to the last (lambda reaches 1), and suggests that Zermatt and Montana show tail dependence.  
-
-Nonetheless, the chi bar plot of Montana temperatures and Nao indices doesn't exhibit asymptotic dependence (lambda equal to 0) as the line gravitate around 0. This means that there is no tail dependence between the two variables and that they do not exhibit extreme values simultaneously.
+- **Chi Bar Plot of Montana vs NAO**: suggests an absence of tail dependence, as evidenced by the lambda statistic equating to zero. The plot's trajectory hovers around the zero mark, indicating that the two variables are likely to act independently at their extremes. Consequently, this implies that extreme values in Montana's temperatures and the NAO indices do not occur in conjunction and thus do not exhibit simultaneous extreme behavior.
 
 
-if the chi bar statistic approaches zero as the quantile approaches 1, it would suggest asymptotic independence because a chi bar of zero would indicate no dependence at that quantile
 

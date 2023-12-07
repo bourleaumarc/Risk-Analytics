@@ -1,18 +1,4 @@
----
-title: "Deliverable 1"
-author: "Group"
-date: "2023-11-16"
-format:
-  html:
-    toc: true
-    toc_float: true
-    toc_left: true
-    code-fold: true
-    code-summary: "Show the code"
-    theme:
-      light: minty
-      dark: darkly
----
+# Practical 1
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, collapse = TRUE)
@@ -26,13 +12,11 @@ knitr::knit_hooks$set(inline = function(x){
 source(here::here("script/setup.R"))
 ```
 
-# Part 1: financial returns and normality
+## Part 1: financial returns and normality
 
-## (a) Read in the data and assess the stationarity of the raw stock indices.
+### (a) Read in the data and assess the stationarity of the raw stock indices.
 
-We are going to use two methods. The first one, is to visualize the
-stock indices over time to get a sense of whether they appear stationary
-or not; using `plot()`.
+We are going to use two methods. The first one, is to visualize the stock indices over time to get a sense of whether they appear stationary or not; using `plot()`.
 
 ```{r question a }
 # Create interactive plots for each index
@@ -58,18 +42,9 @@ combined_plot
 
 ```
 
-It appears that none of the stock indices are stationary based on the
-plots generated. These plots clearly show the presence of trends, which
-are a strong indicator of non-stationarity data. For instance, if we
-take the NASDAQ index as an example, it exhibits a noticeable upward
-trend between 1999 and the beginning of 2000.
+It appears that none of the stock indices are stationary based on the plots generated. These plots clearly show the presence of trends, which are a strong indicator of non-stationarity data. For instance, if we take the NASDAQ index as an example, it exhibits a noticeable upward trend between 1999 and the beginning of 2000.
 
-Another common approach is to use the Augmented-Dickey-Fuller (ADF)
-test. If we can reject the null hypothesis (p-value \< 0.05), then we
-can consider the time-series to be stationary. The null hypothesis of
-this test is that the time series is non-stationary. If the p-value is
-less than your significance level, you can reject the null hypothesis
-and consider the series stationary.
+Another common approach is to use the Augmented-Dickey-Fuller (ADF) test. If we can reject the null hypothesis (p-value \< 0.05), then we can consider the time-series to be stationary. The null hypothesis of this test is that the time series is non-stationary. If the p-value is less than your significance level, you can reject the null hypothesis and consider the series stationary.
 
 ```{r question a: adf test}
 # ADF - Test 
@@ -79,10 +54,9 @@ adf_test_cac40 <- adf.test(cac40$CAC40) ; adf_test_cac40
 adf_test_nikkei <- adf.test(nikkei$NIKKEI) ; adf_test_nikkei
 ```
 
-We can't reject any of the null hypothesis, implying that we do not have
-enough evidence to conclude that the data is stationary.
+We can't reject any of the null hypothesis, implying that we do not have enough evidence to conclude that the data is stationary.
 
-## (b) Create a function to transform the daily stock indices into their daily negative log returns counterparts. Plot the latter series and assess their stationarity. To compare the series, also plot the negative log returns on a common scale to all indices.
+### (b) Create a function to transform the daily stock indices into their daily negative log returns counterparts. Plot the latter series and assess their stationarity. To compare the series, also plot the negative log returns on a common scale to all indices.
 
 ```{r question b}
 # Define a function to calculate negative log returns
@@ -124,18 +98,15 @@ combined_plot2
 
 ```
 
-Looking at the comparison of negative logarithm return of the stock
-indices, we discern the following:
+Looking at the comparison of negative logarithm return of the stock indices, we discern the following:
 
--   mean is not constant: not totally centered around 0, implying that
-    there is a long-term trend in the indexes.
+-   mean is not constant: not totally centered around 0, implying that there is a long-term trend in the indexes.
 
--   variance is not constant: there are clear upward/downward trends.
-    SP500 has very high spikes, such as the one in 1997-10-27.
+-   variance is not constant: there are clear upward/downward trends. SP500 has very high spikes, such as the one in 1997-10-27.
 
 Therefore, graphically, the indexes seem to be non-stationary.
 
-## (c) Draw histograms of the negative log returns and compare them to the Normal distribution. What do you observe?
+### (c) Draw histograms of the negative log returns and compare them to the Normal distribution. What do you observe?
 
 ```{r question c }
 # Set the number of histogram bins
@@ -163,22 +134,11 @@ par(mfrow = c(1, 1))
 
 ```
 
-In a perfectly normal distribution, the data would closely follow the
-red curve. The histograms of the stock indices' negative log returns,
-when compared to the overlaid normal distribution, indicate deviations
-from normality, suggesting the presence of skewness. Such deviations
-hold significant implications for the Black-Scholes formula, which
-assumes normally distributed returns and constant volatility. If returns
-exhibit heavy tails, as suggested by the histograms, the Black-Scholes
-model may not accurately capture the risk of extreme price movements,
-thereby potentially mispricing options that rely on these assumptions.
+In a perfectly normal distribution, the data would closely follow the red curve. The histograms of the stock indices' negative log returns, when compared to the overlaid normal distribution, indicate deviations from normality, suggesting the presence of skewness. Such deviations hold significant implications for the Black-Scholes formula, which assumes normally distributed returns and constant volatility. If returns exhibit heavy tails, as suggested by the histograms, the Black-Scholes model may not accurately capture the risk of extreme price movements, thereby potentially mispricing options that rely on these assumptions.
 
-To validate these observations, further analytical methods will be
-employed later in this document to rigorously assess the distributional
-characteristics of the stock indices' returns.
+To validate these observations, further analytical methods will be employed later in this document to rigorously assess the distributional characteristics of the stock indices' returns.
 
-\## (d) Check the normality assumption of the negative log returns using
-QQ-plots. What is your conclusion?
+### (d) Check the normality assumption of the negative log returns using QQ-plots. What is your conclusion?
 
 ```{r question d }
 # Create QQ-plots for log returns
@@ -195,23 +155,11 @@ qqnorm(log_returns_nikkei, main = "QQ-Plot - NIKKEI Log Returns")
 qqline(log_returns_nikkei)
 ```
 
-The QQ-plots for the negative log returns across various stock indices
-exhibit noticeable deviations from the expected diagonal line,
-particularly within the tails, which indicates a departure from normal
-distribution, with a tendency towards more pronounced extreme movements.
-The Nasdaq index, for instance, distinctly shows this trend with an
-increased frequency of significant negative returns. The differing
-scales of the plots also reveal a variable degree of volatility among
-the indices, with the Nasdaq displaying particularly stark fluctuations.
-This evidence challenges the assumption of normally distributed returns
-integral to the Black-Scholes model, suggesting potential inaccuracies
-in option pricing that relies on this assumption.
+The QQ-plots for the negative log returns across various stock indices exhibit noticeable deviations from the expected diagonal line, particularly within the tails, which indicates a departure from normal distribution, with a tendency towards more pronounced extreme movements. The Nasdaq index, for instance, distinctly shows this trend with an increased frequency of significant negative returns. The differing scales of the plots also reveal a variable degree of volatility among the indices, with the Nasdaq displaying particularly stark fluctuations. This evidence challenges the assumption of normally distributed returns integral to the Black-Scholes model, suggesting potential inaccuracies in option pricing that relies on this assumption.
 
-In conclusion, the observed anomalies in the QQ-plots signal that the
-normality assumption critical to the Black-Scholes framework is
-violated.
+In conclusion, the observed anomalies in the QQ-plots signal that the normality assumption critical to the Black-Scholes framework is violated.
 
-## (e) Formally test the normality assumption of the negative log returns using an Anderson-Darling testing procedure. Do you reject the Normal hypothesis?
+### (e) Formally test the normality assumption of the negative log returns using an Anderson-Darling testing procedure. Do you reject the Normal hypothesis?
 
 ```{r question e}
 # Perform Anderson-Darling test for normality
@@ -228,15 +176,11 @@ print(ad_test_nikkei)
 
 ```
 
-Upon conducting the Anderson-Darling test for normality on the negative
-log returns of the stock indices, we encounter p-values that effectively
-round down to zero ((p-value \< 2.2e-16) , providing robust evidence to
-reject the null hypothesis of normality.
+Upon conducting the Anderson-Darling test for normality on the negative log returns of the stock indices, we encounter p-values that effectively round down to zero ((p-value \< 2.2e-16) , providing robust evidence to reject the null hypothesis of normality.
 
-In summary, log returns of the indices are not normally distributed,
-violating one of the key assumptions behind the Black-Scholes formula.
+In summary, log returns of the indices are not normally distributed, violating one of the key assumptions behind the Black-Scholes formula.
 
-## (f) Use the `fitdistr()` function from the `MASS` package in order to obtain the (maximum-likelihood estimated) parameters of distributions you could imagine for the negative log returns. Try to fit at least two different distributions on the data and, using an information criteria (such as the AIC), decide which distributional framework fits best for each of the series.
+### (f) Use the `fitdistr()` function from the `MASS` package in order to obtain the (maximum-likelihood estimated) parameters of distributions you could imagine for the negative log returns. Try to fit at least two different distributions on the data and, using an information criteria (such as the AIC), decide which distributional framework fits best for each of the series.
 
 ```{r question f, warning=FALSE}
 # Fit distributions : normal
@@ -296,23 +240,11 @@ barplot(
 grid(nx = NA, ny = NULL, col = "gray", lty = "dotted", lwd = par("lwd"))
 ```
 
-Upon fitting both normal and t-distributions to the data and evaluating
-them with the Akaike Information Criterion (AIC), it is important to
-note that both methods yield similar AIC values. However, the
-t-distribution consistently offers a better fit for all four indices, as
-indicated by its slightly lower AIC values. This suggests that while the
-normal distribution provides a close representation of the data, the
-student's t-distribution is more likely to minimize information loss
-when representing the underlying structure of the data, capturing the
-tails of the distributions more effectively.
+Upon fitting both normal and t-distributions to the data and evaluating them with the Akaike Information Criterion (AIC), it is important to note that both methods yield similar AIC values. However, the t-distribution consistently offers a better fit for all four indices, as indicated by its slightly lower AIC values. This suggests that while the normal distribution provides a close representation of the data, the student's t-distribution is more likely to minimize information loss when representing the underlying structure of the data, capturing the tails of the distributions more effectively.
 
-As a result, we will continue analyzing the indices with the Student
-distribution.
+As a result, we will continue analyzing the indices with the Student distribution.
 
-\## (g) If this has not been done in (f), fit a t-distribution to the
-negative log returns using `fitdistr()`.Using a QQ-plot for each of the
-series, decide whether the fit is better than with a Normal
-distribution, based on your answer in (d).
+### (g) If this has not been done in (f), fit a t-distribution to the negative log returns using `fitdistr()`.Using a QQ-plot for each of the series, decide whether the fit is better than with a Normal distribution, based on your answer in (d).
 
 ```{r question g}
 
@@ -349,17 +281,11 @@ par(mfrow = c(1, 1))
 
 ```
 
-Upon examining the QQ plots, the data points in the t-distribution QQ
-plots adhere more closely to the reference line, particularly in the
-tails, suggesting that the t-distribution provides a superior fit for
-the negative log returns of the indices compared to the normal
-distribution. This improved alignment, especially in the tails,
-indicates that the t-distribution more accurately captures the behavior
-of extreme market movements.
+Upon examining the QQ plots, the data points in the t-distribution QQ plots adhere more closely to the reference line, particularly in the tails, suggesting that the t-distribution provides a superior fit for the negative log returns of the indices compared to the normal distribution. This improved alignment, especially in the tails, indicates that the t-distribution more accurately captures the behavior of extreme market movements.
 
-# Part 2: Financial time series, volatility and the random walk hypothesis
+## Part 2: Financial time series, volatility and the random walk hypothesis
 
-## (a) Plot the ACF of all the series in Part 1 (i.e. the raw series as well as the negative log returns). What do you observe?
+### (a) Plot the ACF of all the series in Part 1 (i.e. the raw series as well as the negative log returns). What do you observe?
 
 ```{r question 2a}
 ##############################################################  RAW SERIES ############################################################### 
@@ -410,20 +336,11 @@ acf(log_returns_nikkei, main = "ACF of Nikkei Index")
 mtext("ACF of Negative Log Returns", outer = TRUE, cex = 1.5, line = 0)
 ```
 
-The Autocorrelation Function (ACF) plots for both the raw series and the
-negative log returns reveal distinct patterns. For the raw series, the
-ACF shows a strong, consistent autocorrelation at all lags, indicating a
-non-stationary process where past values have a persistent influence on
-future values.
+The Autocorrelation Function (ACF) plots for both the raw series and the negative log returns reveal distinct patterns. For the raw series, the ACF shows a strong, consistent autocorrelation at all lags, indicating a non-stationary process where past values have a persistent influence on future values.
 
-On the other hand, the ACF plots for the negative log returns show most
-autocorrelations within the confidence bands, implying no significant
-autocorrelation at any lag. This suggests that the log returns are
-closer to a stationary process, despite some lags being outside of the
-confidence bands, indicating that there may be occasional and minor
-deviations from strict stationarity.
+On the other hand, the ACF plots for the negative log returns show most autocorrelations within the confidence bands, implying no significant autocorrelation at any lag. This suggests that the log returns are closer to a stationary process, despite some lags being outside of the confidence bands, indicating that there may be occasional and minor deviations from strict stationarity.
 
-## (b) Use a Ljung-Box procedure to formally test for (temporal) serial dependence in the series. What is your conclusion?
+### (b) Use a Ljung-Box procedure to formally test for (temporal) serial dependence in the series. What is your conclusion?
 
 ```{r question 2b}
 # For Raw Data
@@ -451,23 +368,11 @@ cat("Log Returns NIKKEI Ljung-Box Test - p-value:", box_test_log_nikkei$p.value,
 
 ```
 
-For the raw stock market indices, the results indicate strong evidence
-of serial dependence, with p-values significantly below 0.05
-(\<2.2e-16). This suggests that there is a temporal correlation in the
-raw stock market data, indicating that past observations influence
-future values.
+For the raw stock market indices, the results indicate strong evidence of serial dependence, with p-values significantly below 0.05 (\<2.2e-16). This suggests that there is a temporal correlation in the raw stock market data, indicating that past observations influence future values.
 
-However, when applying the Ljung-Box test to the negative log returns of
-these indices, the results show no significant serial dependence.
-Specifically, for log returns, the p-values are notably higher, with
-values ranging from 0.0514 to 0.933. This implies that after taking the
-logarithm of returns, the temporal correlation is greatly reduced,
-indicating a closer approximation to a stationary process. It's worth
-noting that the Nikkei index stands out with a p-value of 0.05,
-signifying a higher degree of autocorrelation in its log returns
-compared to the other indices.
+However, when applying the Ljung-Box test to the negative log returns of these indices, the results show no significant serial dependence. Specifically, for log returns, the p-values are notably higher, with values ranging from 0.0514 to 0.933. This implies that after taking the logarithm of returns, the temporal correlation is greatly reduced, indicating a closer approximation to a stationary process. It's worth noting that the Nikkei index stands out with a p-value of 0.05, signifying a higher degree of autocorrelation in its log returns compared to the other indices.
 
-## (c) Propose ARIMA models for each of the negative log returns series, based on visualisation tools (e.g. ACF and PACF). Select an ARIMA model using `auto.arima()` to each of the negative log returns series. Comment on the difference. Assess the residuals of the resulting models.
+### (c) Propose ARIMA models for each of the negative log returns series, based on visualisation tools (e.g. ACF and PACF). Select an ARIMA model using `auto.arima()` to each of the negative log returns series. Comment on the difference. Assess the residuals of the resulting models.
 
 ```{r question 2c - order, out.width="50%", warning= FALSE}
 ########## PACF gives AR --> p is the order of AR component #################### 
@@ -533,9 +438,7 @@ print(paste("P-value for NIKKEI:", adf_nikkei$p.value))
 
 ```
 
-As the p-value is smaller than 0 in the ADF test, we don't need to
-differentiate because the null hypothesis of the time series is
-rejected, suggesting that the time series is already stationary.
+As the p-value is smaller than 0 in the ADF test, we don't need to differentiate because the null hypothesis of the time series is rejected, suggesting that the time series is already stationary.
 
 ```{r question 2c - own arima vs auto arima, warning=FALSE}
 ############################## CHOOSING OUR OWN ORDER ############################## 
@@ -577,14 +480,9 @@ par(mfrow = c(1, 1))
 
 ```
 
-Using `auto.arima` yields better results in terms of AIC. By assessing
-the residuals, we observe that they might be independent, as their mean
-is close to 0. When it comes to examining the residuals, there doesn't
-appear to be a significant visual distinction between the two ARIMA
-models. To make a thorough assessment, we will analyze their residuals
-using both the Autocorrelation Function (ACF) and the Ljung-Box test.
+Using `auto.arima` yields better results in terms of AIC. By assessing the residuals, we observe that they might be independent, as their mean is close to 0. When it comes to examining the residuals, there doesn't appear to be a significant visual distinction between the two ARIMA models. To make a thorough assessment, we will analyze their residuals using both the Autocorrelation Function (ACF) and the Ljung-Box test.
 
-## (d) Assess the residuals of the resulting models from (c), both their raw values and their absolute values, through visual tools (such as the ACF) and formal tests (e.g. Ljung-Box). What do you conclude about the independence assumption?
+### (d) Assess the residuals of the resulting models from (c), both their raw values and their absolute values, through visual tools (such as the ACF) and formal tests (e.g. Ljung-Box). What do you conclude about the independence assumption?
 
 ```{r question 2d}
 # Ljung-Box test for autocorrelation in residuals
@@ -689,33 +587,13 @@ kable_output
 
 ```
 
-The ACF plots and Ljung-Box test results for the ARIMA model
-residuals---both raw and absolute---highlight concerns regarding the
-independence of these residuals across the S&P 500, CAC 40, NASDAQ, and
-Nikkei indices. Notably, the ACF plots for raw residuals indicate
-significant autocorrelation at various lags for certain indices,
-suggesting potential residual dependencies. The plots for absolute
-residuals further underscore this, showing pronounced autocorrelation,
-especially for the NASDAQ index, indicating the presence of volatility
-clustering.
+The ACF plots and Ljung-Box test results for the ARIMA model residuals---both raw and absolute---highlight concerns regarding the independence of these residuals across the S&P 500, CAC 40, NASDAQ, and Nikkei indices. Notably, the ACF plots for raw residuals indicate significant autocorrelation at various lags for certain indices, suggesting potential residual dependencies. The plots for absolute residuals further underscore this, showing pronounced autocorrelation, especially for the NASDAQ index, indicating the presence of volatility clustering.
 
-Comparative analysis between the AUTO ARIMA and OWN ARIMA models reveals
-more pronounced autocorrelation in the AUTO ARIMA residuals, suggesting
-that the OWN ARIMA may better capture the series dynamics to some
-extent. However, near-zero p-values from the Ljung-Box tests for
-absolute residuals across all indices decisively reject the null
-hypothesis of independence, confirming that significant autocorrelation
-persists.
+Comparative analysis between the AUTO ARIMA and OWN ARIMA models reveals more pronounced autocorrelation in the AUTO ARIMA residuals, suggesting that the OWN ARIMA may better capture the series dynamics to some extent. However, near-zero p-values from the Ljung-Box tests for absolute residuals across all indices decisively reject the null hypothesis of independence, confirming that significant autocorrelation persists.
 
-These findings suggest that while the raw residuals might not always
-display autocorrelation, their absolute values do, indicating
-non-constant variance and casting doubt on the adequacy of the models.
-The implication is clear: a model that can handle conditional variance,
-such as GARCH, is warranted for a more accurate representation of the
-financial time series, given the heteroscedastic nature revealed by
-these tests.
+These findings suggest that while the raw residuals might not always display autocorrelation, their absolute values do, indicating non-constant variance and casting doubt on the adequacy of the models. The implication is clear: a model that can handle conditional variance, such as GARCH, is warranted for a more accurate representation of the financial time series, given the heteroscedastic nature revealed by these tests.
 
-## (e) Plot the volatility of the raw series of indices. What is your conclusion on the homoscedasticity assumption?
+### (e) Plot the volatility of the raw series of indices. What is your conclusion on the homoscedasticity assumption?
 
 ```{r question 3e}
 # SP500
@@ -770,18 +648,11 @@ p
 
 ```
 
-Volatility graphs indicate periods with significant spikes in volatility
-(ex: Nasdaq between 1999-2000), which challenges the assumption of
-homoscedasticity. This assumption---that the variance of the error term
-remains constant throughout the time series---is a foundational element
-of the Black-Scholes model. The presence of heteroscedasticity, where
-variance fluctuates over time, undermines the model\'s premises, since
-Black-Scholes requires stable volatility to accurately price options
+Volatility graphs indicate periods with significant spikes in volatility (ex: Nasdaq between 1999-2000), which challenges the assumption of homoscedasticity. This assumption---that the variance of the error term remains constant throughout the time series---is a foundational element of the Black-Scholes model. The presence of heteroscedasticity, where variance fluctuates over time, undermines the model's premises, since Black-Scholes requires stable volatility to accurately price options
 
-Therefore, we will fit a GARCH model that addresses the issue of
-heteroscedasticity of the residuals.
+Therefore, we will fit a GARCH model that addresses the issue of heteroscedasticity of the residuals.
 
-## (f) Fit GARCH models to the negative log returns of each series with both standardised and skewed t-distributions, with order (1; 1), using the garchFit() function from the fGarch library. Assess the quality of the fit by evaluating the residuals.
+### (f) Fit GARCH models to the negative log returns of each series with both standardised and skewed t-distributions, with order (1; 1), using the garchFit() function from the fGarch library. Assess the quality of the fit by evaluating the residuals.
 
 ```{r question 2f}
 # Fit a GARCH(1,1) model with standard t-distribution to the log returns
@@ -866,14 +737,9 @@ kable_output
 
 ```
 
-Ho: data are independently distributed, implying that there is no
-autocorrelation among the values. H1: data exhibit some level of
-autocorrelation, meaning that past values in the series have a
-statistically significant influence on future values.
+Ho: data are independently distributed, implying that there is no autocorrelation among the values. H1: data exhibit some level of autocorrelation, meaning that past values in the series have a statistically significant influence on future values.
 
-The quality of the fit is very poor as the null hypothesis is rejected,
-implying that the negative log return exhibit some level of
-autocorrelation.
+The quality of the fit is very poor as the null hypothesis is rejected, implying that the negative log return exhibit some level of autocorrelation.
 
 ```{r}
 # Determining if the skewed t distribution is better than the standard t distribution
@@ -883,9 +749,10 @@ boxplot(residuals_NASDAQ_std - residuals_NASDAQ_sstd)
 boxplot(residuals_nikkei_std - residuals_nikkei_sstd)
 
 ```
+
 As we can see from these boxplots, the standard t distribution and the skewed t distribution are slightly different, but the difference is so minimal that even if the skewness is a significant parameter, it does not change the results in a significant manner. Therefore, we will proceed with the simpler model, which is the standard t distribution.
 
-## (g) Residual serial correlation can be present when fitting a GARCH directly on the negative log returns.
+### (g) Residual serial correlation can be present when fitting a GARCH directly on the negative log returns.
 
 ```{r question 3g, include=FALSE}
 # Step 1: Fit an ARMA model
@@ -945,9 +812,7 @@ Box.test(residuals_nikkei_garch^2, lag = 20, type = "Ljung-Box")
 
 As we can see from the results of the Ljung-Box test on both the residuals and the squared residuals, we cannot reject the null hypothesis of autocorrelation being present in the residuals of the GARCH(1,1) model. As a result, we have a good quality fit wit a GARCH(1,1), though a bit weaker in the case of SP500.
 
-
-
-## (h) Use the garchAuto.R script in order to fit a GARCH on the residuals of the ARMA(p,q) from (g). Assess the quality of the  t.
+### (h) Use the garchAuto.R script in order to fit a GARCH on the residuals of the ARMA(p,q) from (g). Assess the quality of the  t.
 
 ```{r}
 # Auto GARCH formula
@@ -1120,4 +985,3 @@ Box.test(residuals_nikkei_autogarch^2, lag = 20, type = "Ljung-Box")
 The results of the Ljung Box tests on the autoGarch function residuals give us non-significant p-values as well, except for the SP500. This means that we cannot reject the null hypothesis of autocorrelation between the residuals for CAC40, NASDAQ and Nikkei, but we do reject it at a 95% confidence level for SP500. However, the squared residuals for SP500 show a high enough p-value for it to not be rejected.
 
 We can conclude that SP500 could still have autocorrelation in its residuals, but it depends on which Ljung-Box test we decide to trust more (normal residuals or squared residuals).
-
