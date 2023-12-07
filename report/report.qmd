@@ -4,22 +4,25 @@ subtitle: "Master in Management, HEC Lausanne"
 author:
   - name: "Quentin Besson"
     affiliation: "quentin.besson@unil.ch"
-  - name: "Charlene Khairallah"
+  - name: "Marc Bourleau"
+    affiliation: "marc.bourleau@unil.ch"
+  - name: "Charlène Khairallah"
     affiliation: "charlene.khairallah@unil.ch"
   - name: "Selena Milosevic"
     affiliation: "selena.milosevic@unil.ch"
-  - name: "Marc Bourleau"
-    affiliation: "marc.bourleau@unil.ch"
-date: "18th of December 2023"
-format: html
+date: "2023-12-18"
+format: 
+  html:
+    self-contained: true
 fig-cap: true
 fig-width: 7
 fig-height: 6
-number-sections: true
+#number-sections: true
 toc: true
 toc-float:
-  align: left
-toc-depth: 4
+  toc-positon: left
+  width: 75%  # Adjust the percentage to your preference
+#toc-depth: 4
 theme: lumen
 code-fold: true
 css: css.css

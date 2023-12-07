@@ -374,7 +374,7 @@ However, when applying the Ljung-Box test to the negative log returns of these i
 
 ### (c) Propose ARIMA models for each of the negative log returns series, based on visualisation tools (e.g. ACF and PACF). Select an ARIMA model using `auto.arima()` to each of the negative log returns series. Comment on the difference. Assess the residuals of the resulting models.
 
-```{r question 2c - order, out.width="50%", warning= FALSE}
+```{r question 2c - order, warning= FALSE}
 ########## PACF gives AR --> p is the order of AR component #################### 
 par(mfrow = c(2, 2))  # Create a 2x2 grid of plots
 par(oma = c(0, 0, 1, 0))

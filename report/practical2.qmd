@@ -5,8 +5,8 @@ date: "2023-10-21"
 output: html_document
 ---
 
+# Practical 2
 
-# Practical 2 
 ```{r, echo = FALSE, message = FALSE, warning=FALSE}
 source(here::here("script/setup.R"))
 
@@ -105,7 +105,7 @@ yy <- 1:length(venice_max$year)
 gev_time_varying_linear <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units= "year", location.fun = ~ yy)
 gev_time_varying_harmonic <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units= "year", location.fun = ~sin(2 * pi * (year - 1940)/70) + cos(2 * pi * (year - 1940)/70))
 
-plot(gev_time_varying_linear) ; plot(gev_time_varying_harmonic) ; gev_time_varying_linear$results$par ; gev_time_varying_harmonic$results$par;  return.level(gev_time_varying_linear) ; return.level(gev_time_varying_harmonic) 
+plot(gev_time_varying_linear) ; plot(gev_time_varying_harmonic) ;#gev_time_varying_linear$results$par ; gev_time_varying_harmonic$results$par;  return.level(gev_time_varying_linear) ; return.level(gev_time_varying_harmonic) 
 # Compare the two models using likelihood ratio test: Ho: no significant difference in model fit H1: there is a significant difference in model fit between the two models.
 lrt_result_linear <- lr.test(gev_fix, gev_time_varying_linear) # we can almost reject the null hypothesis at 95% significant level, which make sense as we have indications that the distribution is non-stationary
 lrt_result_harmonic <-lr.test(gev_fix, gev_time_varying_harmonic) 
@@ -193,6 +193,7 @@ lines(1:13, rtl, lty = 2, col = 2)
 lines(1:13, rtu, lty = 1)
 
 ```
+
 Here, we can observe a trend slowly increasing from the predicted values. However, there is a noticeable problem with the method we used. Indeed, the confidence intervals are way too close to the return level, giving us bounds which are too narrow to observe anything significant. A more complete analysis would require a de-trending of the bootstrapped values, but we were limited by the time allowed to complete this work.
 
 ### (h) Represent in the same graph your predictions of the 13-years return levels, their pointwise confidence intervals, the predicted yearly max values from the linear model and the observed values greater than 140 cm from the table below.
@@ -363,13 +364,15 @@ title(main = "100-Year Return Level", line = -1, col.main = "red")
 par(mfrow = c(1, 1))
 
 ```
-This threshold was determined by examining the mean residual life plot, where 326.9 meters emerged as a critical point where the mean excess values begin to show significant variation. This value represents a transition in the data, marking where the mean excess values start to widen noticeably. This observation is further substantiated by the fact that 326.9 meters corresponds to the 95th percentile of your dataset, indicating it is a level exceeded by only the top 5% of your observations. 
+
+This threshold was determined by examining the mean residual life plot, where 326.9 meters emerged as a critical point where the mean excess values begin to show significant variation. This value represents a transition in the data, marking where the mean excess values start to widen noticeably. This observation is further substantiated by the fact that 326.9 meters corresponds to the 95th percentile of your dataset, indicating it is a level exceeded by only the top 5% of your observations.
 
 ### (f) Explain the drawbacks and advantages of using a block maxima method instead of the one used in c)-e).
 
 ## Part 3: Night temperatures in Lausanne
 
 ### (a) Read in the data for the daily night maximum temperatures in Lausanne. Subset the summer months (June to September).
+
 ```{r}
 night_max <- read_csv(here::here("data/practical_2/nightmax.csv"))  
 night_min <- read_csv(here::here("data/practical_2/nightmin.csv"))
@@ -379,7 +382,9 @@ night_min <- na.omit(night_min)
 # Subset the data for summer months (June to September)
 summer_night_max <- night_max[format(night_max$date,"%m") %in% c("06", "07", "08", "09"), ] 
 ```
+
 ### (b) Assess whether extremes of the subsetted series in (a) occur in cluster.
+
 ```{r question 3b}
 # Visualise the data: plot and histogram of the maximum temperatures for the summer months 
 summer_night_max$date_str <- format(summer_night_max$date, "%d %b %Y") 
@@ -417,9 +422,11 @@ extremalindex(night_max$night.max, th_1) # 0.31 so 1/0.31 = 3.23 WE NEED TO DECL
 
 
 ```
-We have an approximate mean cluster size of 3.23, indicating that extremes values are clustered together. Therefore, we need to decluster. 
+
+We have an approximate mean cluster size of 3.23, indicating that extremes values are clustered together. Therefore, we need to decluster.
 
 ### (c) Decluster the data from (a) using a suitable threshold. Plot the resulting declustered data. (Hint: you may want to use the extRemes package.)
+
 ```{r question 3c}
 # We need to create a vector of size summer_night_max that stores the year. 
 years_part3 <- c()
@@ -440,7 +447,9 @@ decl1 # we have 71 clusters
 plot(decl1) # shows in grey the points that are not retained in the selection 
 
 ```
-### (d) Fit a GPD to the data, both raw and declustered. Assess the quality of the fit. 
+
+### (d) Fit a GPD to the data, both raw and declustered. Assess the quality of the fit.
+
 ```{r}
 # Use fevd of the normal and declustered 
 gpd_raw <- fevd(summer_night_max$night.max, threshold = th_1, type = "GP")
@@ -453,13 +462,15 @@ title(main = "GPD fitted to declustered data", line = 1, col.main = "red")
 par(mfrow = c(1, 1))
 # Assess the fit: AIC for raw is 369, AIC for declustered data is 193
 ```
+
 For the raw data, the adherence of the points to the 1:1 line in the Quantile-Quantile (Q-Q) plot suggests a superior fit compared to the declustered data. Furthermore, the lower AIC value for the raw data implies that it provides a more efficient balance between model complexity and goodness of fit. This indicates that the model for the raw data may be more appropriate for capturing the underlying distribution of the dataset.
 
 ### (e) Repeat the above analysis for the negatives of the daily nightly minimum temperatures for the winter months (November-February).
-As we are dealing with negative values (min), we need to invert the `night.min` values to apply the Peak-Over-Threshold. 
+
+As we are dealing with negative values (min), we need to invert the `night.min` values to apply the Peak-Over-Threshold.
 ::: callout-note
-## Note
-To correctly subset winter months in `night.min` considering that winter spans from November and December of year t and January and February of year t+1, we need to adjust the selection process. 
+### Note
+To correctly subset winter months in night.min considering that winter spans from November and December of year t and January and February of year t+1, we need to adjust the selection process.
 :::
 ```{r}
 # Assuming 'night_min' has a 'date' column in Date format
@@ -483,8 +494,10 @@ winter_night_min <- winter_night_min %>% mutate(day = day(date), full_date = pas
 winter_night_min <- winter_night_min %>% mutate(full_date = as.Date(full_date, format = "%d-%m-%Y"))
 
 ```
+
 ::: callout-note
-## Note
+### Note
+
 To properly implement the Peak-Over-Threshold method with negative values, the data frame should be inverted so that the negative values are positioned at the top.
 :::
 
@@ -554,5 +567,3 @@ par(mfrow = c(1, 1))
 # Assess the fit: AIC for raw is 38100, AIC for declustered data is 193
 
 ```
-
-

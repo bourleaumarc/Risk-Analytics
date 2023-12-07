@@ -1,0 +1,111 @@
+---
+title: "Practical2.part3"
+output: html_document
+date: "2023-11-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = FALSE, message = FALSE, warning=FALSE}
+source(here::here("script/setup.R"))
+```
+# Part 3 
+## (a) Read in the data for the daily night maximum temperatures in Lausanne. Subset the summer months (June to September).
+```{r question 3a}
+night_max <- read_csv(here::here("data/nightmax.csv"))  
+night_min <- read_csv(here::here("data/nightmin.csv"))
+# Remove rows with missing values
+night_max <- na.omit(night_max)
+night_min <- na.omit(night_min)
+# Subset the data for summer months (June to September)
+summer_night_max <- night_max[format(night_max$date,"%m") %in% c("06", "07", "08", "09"), ] 
+```
+
+## (b) Assess whether extremes of the subsetted series in (a) occur in cluster.
+```{r question 3b}
+# Visualise the data: plot and histogram of the maximum temperatures for the summer months 
+plot(summer_night_max$date, summer_night_max$night.max, type = "l", xlab = "Date", ylab = "Night Max Temperature", main = "Summer Night Max Temperatures")
+hist(summer_night_max$night.max, breaks = 30, xlab = "Night Max", ylab = "Frequency", main = "Histogram of summer night max temperatures")
+# Have more information about the distribution 
+min(summer_night_max$night.max) ; mean(summer_night_max$night.max); max(summer_night_max$night.max)
+quantile(summer_night_max$night.max, 0.95) # doesn't seem to be very right-skewed 
+# Choose the threshold using the mrlplot()
+mrlplot(summer_night_max$night.max, main="Mean residual")
+threshrange.plot(summer_night_max$night.max, r= c(20,30), nint = 20) # we are going to use 30 
+th_1 <- 30 # with this threshold we would have 5% of observations: 400 so seems good. 
+# Visualise the threshold 
+plot(night_max$night.max, type = 'l')
+abline(h=th,col=2) # looks good 
+# Assess the threshold
+pot_mle <- fevd(night_max$night.max, method = "MLE", type="GP", threshold=th_1) 
+plot(pot_mle) 
+rl_mle <- return.level(pot_mle, conf = 0.05, return.period= c(2,5,10,20,50,100), do.ci=T) # diagnostic plot looks good and coinfidence interval become wider the longer the return level, which make sense 
+# Return level plots with MLE 
+par(mfcol=c(1,1))
+plot(pot_mle, type="rl",
+     main="Return Level Plot for Oberwang w/ MLE",
+    ylim=c(0,200), pch=16)
+loc <- as.numeric(return.level(pot_mle, conf = 0.05, return.period=50))
+segments(50, 0, 50, loc, col= 'midnightblue',lty=6)
+segments(0.01,loc,50, loc, col='midnightblue', lty=6)
+# Assess wether extremes occur in a cluster using extremalindex()
+extremalindex(night_max$night.max, th_1) # 0.31 so 1/0.31 = 3.23 WE NEED TO DECLUSTER 
+
+
+```
+We have an approximate cluster size of 3.23, indicating that extremes values are clustered together. Therefore, we need to decluster. 
+
+## (c) Decluster the data from (a) using a suitable threshold. Plot the resulting declustered data. (Hint: you may want to use the extRemes package.)
+```{r question 3c}
+# We need to create a vector of size night_max that stores the year. 
+years <- numeric(nrow(night_max))
+
+k <- 1
+for (i in 1:nrow(night_max)) {
+  if (is.na(night_max$night.max[i])) {
+    next
+  } else {
+    years[k] <- year(as.Date(night_max$date[i]))
+    k <- k + 1
+  }
+}
+years <- years-1999 # we don't want the year but the index of the years
+# Use decluster function of extRemes 
+decl1 <- decluster(night_max$night.max, threshold=th, groups=years, na.action=na.omit) # vector and groups need to have the same size 
+decl1 # we have 71 clusters 
+plot(decl1) # shows in grey the points that are not retained in the selection 
+```
+
+## (d) Fit a GPD to the data, both raw and declustered. Assess the quality of the fit. 
+```{r}
+# Use fevd of the normal and declustered 
+gpd_raw <- fevd(night_max$night.max, threshold = th_1, type = "GP")
+gpd_declustered <- fevd(decl1, threshold = th_1, type = "GP")
+plot(gpd_raw)
+plot(gpd_declustered)
+```
+
+(e) Repeat the above analysis for the negatives of the daily nightly minimum temperatures for the
+winter months (November-February).
+```{r question 3e}
+# Subset the winter months (November to February)
+winter_night_min <- night_min[format(night_min$date, "%m") %in% c("11", "12", "01", "02"), ]
+# We first do the plot and histogram of the negatives of the daily nightly minimum temperatures for the winter months (November-February).
+plot(winter_night_min$date, winter_night_min$night.min, type = "l", xlab = "Date", ylab = "Night Min Temperature", main = "Winter Night Min Temperatures")
+hist(winter_night_min$night.min, breaks = 30, xlab = "Date", ylab = "Night Min Temperature", main = "Winter Night Min Temperatures frequency")
+min(winter_night_min$night.min); mean(winter_night_min$night.min); max(winter_night_min$night.min)
+quantile(winter_night_min$night.min, 0,95)
+
+mrlplot(winter_night_min$night.min, main="Mean residual")
+threshrange.plot(winter_night_min$night.min, r= c(-5,15), nint =20)
+
+mean(winter_night_min$night.min)
+
+max(summer_night_max$night.max)
+quantile(summer_night_max$night.max, 0,95)
+mean(summer_night_max$night.max)
+
+```
+

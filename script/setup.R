@@ -20,16 +20,19 @@ packages <- c(
   "plotrix", # practical 2 
   "scales", # practical 2 
   "extRemes",# practical 2 
-  "knitr",
-  "xts",
-  "kableExtra",
-  "dygraphs",
-  "gridExtra",
-  "readr",
-  "lubridate",
-  "evd",
-  "xts",
-  "data.table")
+  "knitr", # practical 2 
+  "xts",# practical 2 
+  "kableExtra", # practical 2 
+  "dygraphs",# practical 2 
+  "gridExtra",# practical 2 
+  "readr",# practical 2 
+  "lubridate",# practical 3
+  "evd",# practical 2 
+  "xts",# practical 2 
+  "data.table",# practical 3
+  "copula",# practical 3
+  "VineCopula",
+  "psych")# practical 3
 
 # Check if each package is available, and install it if not
 for (package in packages) {
