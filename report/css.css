@@ -2,17 +2,10 @@ body {
   text-align: justify;
   font-family: "Times New Roman";
   margin: auto;
-  
 }
 
-.table{
-  width:auto;
+.table, .graph {
   font-family: "Times New Roman";
   font-size: 12px;
 }
 
-.graph{
-  width:auto;
-  font-family: "Times New Roman";
-  font-size: 12px;
-}

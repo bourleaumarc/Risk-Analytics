@@ -3,25 +3,26 @@ title: "Risk Analytics"
 subtitle: "Master in Management, HEC Lausanne"
 author:
   - name: "Quentin Besson"
-    affiliation: "Quentin Besson: quentin.besson@unil.ch"
+    affiliation: "quentin.besson@unil.ch"
   - name: "Charlene Khairallah"
-    affiliation: "Charlene Khairallah: charlene.khairallah@unil.ch"
+    affiliation: "charlene.khairallah@unil.ch"
   - name: "Selena Milosevic"
-    affiliation: "Selena Milosevic: selena.milosevic@unil.ch"
+    affiliation: "selena.milosevic@unil.ch"
   - name: "Marc Bourleau"
-    affiliation: "Marc Bourleau: marc.bourleau@unil.ch"
+    affiliation: "marc.bourleau@unil.ch"
 date: "18th of December 2023"
 format: html
-css: css.css
 fig-cap: true
 fig-width: 7
 fig-height: 6
 number-sections: true
 toc: true
-toc-float: true
+toc-float:
+  align: left
 toc-depth: 4
 theme: lumen
 code-fold: true
+css: css.css
 ---
 
 ```{r child = c('practical1.qmd', 'practical2.qmd', 'practical3.qmd'), warning=FALSE}
