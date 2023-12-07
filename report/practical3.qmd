@@ -121,7 +121,7 @@ plot(Z$Montana, Z$NAO, xlab = "Montana Temperature", ylab = "NAO Index",
      main = "Montana Temperature vs NAO Index")
 abline(lm(Z$NAO ~ Z$Montana), col = "red") # Add a linear regression line
 legend("topright", 
-       legend = "Fitted Regression Line", 
+       legend = "Fitted Regression", 
        col = "red", 
        lty = 1, 
        cex = 0.8)
