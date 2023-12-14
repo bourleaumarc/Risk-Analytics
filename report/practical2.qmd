@@ -66,11 +66,11 @@ max_real <- data.frame(year = c(2012, 2012, 2013, 2018, 2019, 2019, 2019, 2022),
 
 # Create the ggplot object
 venice_plot <- ggplot() +
-  geom_point(data = max_real, aes(x = year, y = max_sea_level, color = "Observed"), alpha = 0.5, show.legend = TRUE, name = "Observed") +
-  geom_point(data = venice_max_predict, aes(x = year, y = PredictedValues.fit.fit, color = "Predicted"), shape = 1, show.legend = TRUE, name = "Predicted") +
+  geom_point(data = max_real, aes(x = year, y = max_sea_level, color = "Observed values"), alpha = 0.5, show.legend = TRUE, name = "Observed values") +
+  geom_point(data = venice_max_predict, aes(x = year, y = PredictedValues.fit.fit, color = "Predicted values (linear model)"), shape = 1, show.legend = TRUE, name = "Predicted values (linear model)") +
   labs(title = "Predicted Yearly Max Values vs Observed Values (>140cm)", x = "Year", y = "Sea Level") +
   scale_x_continuous(breaks = unique(c(venice_max_predict$year, max_real$year))) +
-  scale_color_manual(name = "Data Type", values = c("Observed" = "red", "Predicted" = "black")) +
+  scale_color_manual(name = "Data Type", values = c("Observed values" = "red", "Predicted values (linear model)" = "black")) +
   theme(legend.title = element_blank())
 
 # Convert the ggplot object to a Plotly interactive plot
@@ -78,7 +78,7 @@ interactive_venice_plot <- ggplotly(venice_plot)
 
 # Add the confidence interval as a separate trace
 interactive_venice_plot <- interactive_venice_plot %>%
-  add_ribbons(data = venice_max_predict, x = ~year, ymin = ~PredictedValues.fit.lwr, ymax = ~PredictedValues.fit.upr, color = I("blue"), showlegend = TRUE, name = "Confidence Interval")
+  add_ribbons(data = venice_max_predict, x = ~year, ymin = ~PredictedValues.fit.lwr, ymax = ~PredictedValues.fit.upr, color = I("blue"), showlegend = TRUE, name = "Confidence Interval (linear model)")
 
 # Display the interactive plot
 interactive_venice_plot
@@ -124,6 +124,7 @@ On the other hand, the harmonic function, which is often used to model periodic 
 
 ```{r}
 # Fit a GEV model with time-varying scale 
+gev_time_varying_location <-  fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", location.fun = ~ yy) # AIC: 600
 gev_time_varying_scale <-  fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", scale.fun = ~ yy) # AIC: 600
 gev_time_varying_shape <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", shape.fun = ~ yy) # AIC:  600.7072 
 gev_time_varying_scale_shape <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", shape.fun = ~ yy, scale.fun = ~ yy ) # AIC: 601.9
@@ -131,14 +132,14 @@ gev_time_varying_location_scale <- fevd(venice_max$max_sea_level, venice_max, ty
 gev_time_varying_location_shape <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", shape.fun = ~ yy, location.fun =  ~ yy) # AIC: 586
 gev_time_varying_scale_shape_location <- fevd(venice_max$max_sea_level, venice_max, type = "GEV", time.units = "year", shape.fun = ~ yy, location.fun =  ~ yy, scale.fun = ~ yy ) # AIC: 586 
 lrt_result <- lr.test(gev_time_varying_location_shape, gev_time_varying_scale_shape_location) # can't reject the null hypothesis so we decide to choose the gev_time_varying_location_shape 
-
+lr.test(gev_time_varying_location, gev_time_varying_location_shape)
 ```
 
 After comparing the AIC of the models above, it aprears that the best models are the "gev_time_varying_location_shape" and "gev_time_varying_scale_shape_location", for which we did the LRT test. it shows us that the best model is the less complex one: the "gev_time_varying_location_shape".
 
 ### (f) Predict the 13-years return level, each year from 2010 to 2022.
 
-```{r, include= FALSE}
+```{r}
 return_levels_df <- data.frame(return_level = numeric())  # Create an empty data frame with a column "return_level"
 
 for (i in 71:83) {
@@ -155,15 +156,13 @@ rownames(return_levels_df) <- 1:nrow(return_levels_df)
 
 print(return_levels_df)
 
- 
-
 ```
 
 The obtained return levels are quite stable, slowly increasing over time from 148 to 149.
 
 ### (g) Calculate confidence bands for these predictions
 
-```{r, include=FALSE}
+```{r, include = FALSE}
 rlci<- data.frame(return_level = numeric(), Lower_CI = numeric(), Upper_CI = numeric())
 B <- 200
 rt1 <- matrix(0, nrow=B, ncol=13)
@@ -203,8 +202,8 @@ rlci$Year = c(2010:2022)
 return_levels_df$Year = c(2010:2022)
 
 interactive_venice_plot %>% 
-  add_lines(data = rlci, x = ~Year, y = ~return_level, color = I("red"), name = "Predicted values (model)") %>%
-  add_ribbons(data = rlci, x = ~Year, ymin = ~Lower_CI, ymax = ~Upper_CI, color = I("red"), name  = "Confidence Interval (model)")
+  add_markers(data = rlci, x = ~Year, y = ~return_level, color = I("black"), name = "Predicted values (time-varying model)") %>%
+  add_ribbons(data = rlci, x = ~Year, ymin = ~Lower_CI, ymax = ~Upper_CI, color = I("red"), name  = "Confidence Interval (time-varying model)")
 ```
 
 ### (i) Broadly speaking, each year, there is a chance of 1/13 that the observed value is above the 13- years return level. Comment the results for both the linear model prediction and GEV approach. Note that 12 of the 20 events occurred in the 21st century.
